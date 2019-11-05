@@ -191,6 +191,9 @@
   <ItemGroup>
     <Resource Include="src\img\logo.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="src\img\logo2.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

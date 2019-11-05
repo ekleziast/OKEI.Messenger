@@ -5,10 +5,6 @@ VisualStudioVersion = 16.0.29424.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessengerWPF", "MessengerWPF\MessengerWPF.csproj", "{FFE4DD50-6DD4-4452-9394-69A41AE73B77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsSample", "..\winformschat\SignalR-samples\WindowsFormsSample\WindowsFormsSample\WindowsFormsSample.csproj", "{BDB97E88-B2C0-44C5-982E-D9CF0EBCA451}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatSample", "..\winformschat\SignalR-samples\ChatSample\ChatSample\ChatSample.csproj", "{11165484-4134-4520-9532-17C8BC681222}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{FFE4DD50-6DD4-4452-9394-69A41AE73B77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFE4DD50-6DD4-4452-9394-69A41AE73B77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFE4DD50-6DD4-4452-9394-69A41AE73B77}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDB97E88-B2C0-44C5-982E-D9CF0EBCA451}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDB97E88-B2C0-44C5-982E-D9CF0EBCA451}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDB97E88-B2C0-44C5-982E-D9CF0EBCA451}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDB97E88-B2C0-44C5-982E-D9CF0EBCA451}.Release|Any CPU.Build.0 = Release|Any CPU
-		{11165484-4134-4520-9532-17C8BC681222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{11165484-4134-4520-9532-17C8BC681222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{11165484-4134-4520-9532-17C8BC681222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{11165484-4134-4520-9532-17C8BC681222}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
