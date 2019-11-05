@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MessengerServer
@@ -12,71 +13,48 @@ namespace MessengerServer
     {
         public static readonly int PORT = 8005;
 
-        static Socket listeningSocket; // Сокет
         static List<IPEndPoint> Clients = new List<IPEndPoint>(); // Список клиентов
         static void Main(string[] args)
         {
+            Console.WriteLine("Сервер запущен. Ожидание подключения...");
             try
             {
-                listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                Task listeningTask = new Task(Listen); // Создание потока для получения сообщений
-                listeningTask.Start();
-                listeningTask.Wait(); // Не идем дальше пока поток не будет остановлен
+                Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+                receiveThread.Start();
             } catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                Close();
             }
         }
-
-        private static void Listen()
+        private static void ReceiveMessage()
         {
+            UdpClient receiver = new UdpClient(PORT); // UdpClient для получения данных
+            IPEndPoint remoteIp = null; // адрес входящего подключения
             try
             {
-                IPEndPoint localIP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), PORT);
-                listeningSocket.Bind(localIP);
-
-                Console.WriteLine("Сервер запущен! Ожидаем подключения...");
-
                 while (true)
                 {
-                    StringBuilder builder = new StringBuilder();
-                    int bytes = 0;
-                    byte[] data = new byte[256];
-                    EndPoint remoteIP = new IPEndPoint(IPAddress.Any, 0); // адрес удаленного подключения
-
-                    do
-                    {
-                        bytes = listeningSocket.ReceiveFrom(data, ref remoteIP);
-                        builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
-                    } while (listeningSocket.Available > 0);
-
-                    IPEndPoint remoteFullIP = remoteIP as IPEndPoint; // данные о подключении
+                    byte[] data = receiver.Receive(ref remoteIp); // получаем данные
+                    string message = Encoding.Unicode.GetString(data);
                     Console.WriteLine(
-                        $"({DateTime.Now.ToShortTimeString()}) {remoteFullIP.Address.ToString()}:{remoteFullIP.Port} - " +
-                        $"{builder.ToString()}"); // Logging
+                        $"({DateTime.Now.ToShortTimeString()}) {remoteIp.Address.ToString()}:{remoteIp.Port} - " +
+                        $"{message}"); // Logging
 
-                    bool isClientInCollection = Clients.Any(o => 
-                        o.Address.ToString() == remoteFullIP.Address.ToString()
-                        && o.Port == remoteFullIP.Port
-                    );
-                    if (!isClientInCollection) Clients.Add(remoteFullIP); // Добавляем нового клиента в список
-
-                    // TODO: Оповещение клиентов о получении нового сообщения
-                    // Сейчас происходит отправка всем клиентов
-                    BroadcastMessage(builder.ToString(), remoteFullIP);
-
+                    bool isClientInCollection = Clients.Any(o =>
+                    o.Address.ToString() == remoteIp.Address.ToString() &&
+                    o.Port == remoteIp.Port);
+                    if (!isClientInCollection) Clients.Add(remoteIp);
+                    
+                    BroadcastMessage(message, remoteIp);
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
             finally
             {
-                Close();
+                receiver.Close();
             }
         }
 
@@ -87,27 +65,25 @@ namespace MessengerServer
         /// <param name="ip">IPEndPoint отправителя</param>
         private static void BroadcastMessage(string message, IPEndPoint ip)
         {
-            byte[] data = Encoding.Unicode.GetBytes(message);
-            Clients.ForEach(o => {
-            if ($"{o.Address.ToString()}:{o.Port}" != $"{ip.Address.ToString()}:{ip.Port}")
-                {
-                    listeningSocket.SendTo(data, o);
-                }
-            });
-        }
+            UdpClient sender = new UdpClient(); // создаем UdpClient для отправки сообщений
 
-        /// <summary>
-        /// Закрывает соединение
-        /// </summary>
-        private static void Close()
-        {
-            if(listeningSocket != null)
+            byte[] data = Encoding.Unicode.GetBytes(message);
+            try
             {
-                listeningSocket.Shutdown(SocketShutdown.Both);
-                listeningSocket.Close();
-                listeningSocket = null;
+                Clients.ForEach(o => {
+                    if ($"{o.Address.ToString()}:{o.Port}" != $"{ip.Address.ToString()}:{ip.Port}")
+                    {
+                        sender.Send(data, data.Length, o);
+                    }
+                });
+            } catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
-            Console.WriteLine("Сервер остановлен!");
+            finally
+            {
+                sender.Close();
+            }
         }
     }
 }

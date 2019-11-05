@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MessengerClient
@@ -11,85 +12,58 @@ namespace MessengerClient
     class Program
     {
         public static readonly int SERVERPORT = 8005;
-        public static readonly IPAddress SERVERADDRESS = IPAddress.Parse("127.0.0.1");
-        static Socket listeningSocket; // Сокет
+        public static readonly string SERVERADDRESS = "127.0.0.1";
+
         static void Main(string[] args)
         {
-            try
-            {
-                listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                Task listeningTask = new Task(Listen); // Создание потока
-                listeningTask.Start(); // Запуск потока
-
-                while (true) // Отправление сообщений серверу в бесконечном цикле
-                {
-                    string message = Console.ReadLine();
-
-                    byte[] data = Encoding.Unicode.GetBytes(message);
-                    EndPoint remotePoint = new IPEndPoint(SERVERADDRESS, SERVERPORT);
-                    listeningSocket.SendTo(data, remotePoint);
-                }
-            } catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                Close();
-            }
-
-            Console.ReadKey();
+            Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
+            receiveThread.Start();
+            SendMessage();
         }
-
-        private static void Listen()
+        private static void SendMessage()
         {
+            UdpClient sender = new UdpClient(); // создаем UdpClient для отправки сообщений
             try
             {
-                IPEndPoint localIP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-                listeningSocket.Bind(localIP);
-
                 while (true)
                 {
-                    StringBuilder builder = new StringBuilder();
-                    int bytes = 0;
-                    byte[] data = new byte[256];
-
-                    EndPoint remoteIp = new IPEndPoint(IPAddress.Any, 0);
-
-                    do
-                    {
-                        bytes = listeningSocket.ReceiveFrom(data, ref remoteIp);
-                        builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
-                    }
-                    while (listeningSocket.Available > 0);
-
-                    IPEndPoint remoteFullIp = remoteIp as IPEndPoint;
-
-                    Console.WriteLine("{0}:{1} - {2}", remoteFullIp.Address.ToString(), remoteFullIp.Port, builder.ToString());
-
+                    string message = Console.ReadLine(); // сообщение для отправки
+                    byte[] data = Encoding.Unicode.GetBytes(message);
+                    sender.Send(data, data.Length, SERVERADDRESS, SERVERPORT); // отправка
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
             finally
             {
-                Close();
+                sender.Close();
             }
         }
 
-        /// <summary>
-        /// Закрывает соединение
-        /// </summary>
-        private static void Close()
+        // эта хуйня не работает короче
+        private static void ReceiveMessage()
         {
-            if (listeningSocket != null)
+            UdpClient receiver = new UdpClient(new Random().Next(40000, 60000)); // UdpClient для получения данных
+            IPEndPoint remoteIp = null; // адрес входящего подключения
+            try
             {
-                listeningSocket.Shutdown(SocketShutdown.Both);
-                listeningSocket.Close();
-                listeningSocket = null;
+                while (true)
+                {
+                    byte[] data = receiver.Receive(ref remoteIp); // получаем данные
+                    string message = Encoding.Unicode.GetString(data);
+                    Console.WriteLine("Собеседник: {0}", message);
+                }
             }
-            Console.WriteLine("Сервер остановлен!");
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                receiver.Close();
+            }
         }
     }
 }
