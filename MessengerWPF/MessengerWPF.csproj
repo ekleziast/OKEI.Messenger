@@ -112,23 +112,6 @@
     <Compile Include="Converters\DateTimeConverter.cs" />
     <Compile Include="Converters\MessageConverter.cs" />
     <Compile Include="Converters\MultiValuesConverter.cs" />
-    <Compile Include="Migrations\201911040859156_InitialCreate.cs" />
-    <Compile Include="Migrations\201911040859156_InitialCreate.designer.cs">
-      <DependentUpon>201911040859156_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201911041137057_init_migration.cs" />
-    <Compile Include="Migrations\201911041137057_init_migration.designer.cs">
-      <DependentUpon>201911041137057_init_migration.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201911041138589_init_migration_2.cs" />
-    <Compile Include="Migrations\201911041138589_init_migration_2.designer.cs">
-      <DependentUpon>201911041138589_init_migration_2.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Model\Account.cs" />
-    <Compile Include="Model\Chat.cs" />
-    <Compile Include="Model\ChatHistory.cs" />
-    <Compile Include="Model\ChatMember.cs" />
     <Compile Include="View\AuthWindow.xaml.cs">
       <DependentUpon>AuthWindow.xaml</DependentUpon>
     </Compile>
@@ -154,15 +137,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Migrations\201911040859156_InitialCreate.resx">
-      <DependentUpon>201911040859156_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201911041137057_init_migration.resx">
-      <DependentUpon>201911041137057_init_migration.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201911041138589_init_migration_2.resx">
-      <DependentUpon>201911041138589_init_migration_2.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -179,6 +153,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Model\" />
     <Folder Include="Util\" />
     <Folder Include="ViewModel\" />
   </ItemGroup>
@@ -190,9 +165,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="src\img\logo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="src\img\logo2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

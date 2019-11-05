@@ -11,9 +11,5 @@ namespace MessengerWPF
     {
         public Context() : base("DbConnection") { Database.CreateIfNotExists(); }
 
-        public DbSet<Account> Accounts { get; set; }
-        public DbSet<Chat> Chats { get; set; }
-        public DbSet<ChatMember> ChatMembers { get; set; }
-        public DbSet<ChatHistory> ChatHistories { get; set; }
     }
 }

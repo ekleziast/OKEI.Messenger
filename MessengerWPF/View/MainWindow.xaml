@@ -35,7 +35,7 @@
                                     </Grid.RowDefinitions>
                                     <!--#region <Searcher> -->
                                     <DockPanel Grid.Row="0">
-                                        <TextBox x:Name="SearchTextBox" Template="{StaticResource StandartTextBox}" Tag="Поиск..." TextChanged="SearchTextBox_TextChanged"/>
+                                        <TextBox x:Name="SearchTextBox" Template="{StaticResource StandartTextBox}" Tag="Поиск беседы..." TextChanged="SearchTextBox_TextChanged"/>
                                     </DockPanel>
                                     <!--#endregion-->
                                     <!--#region <ChatList> -->
