@@ -1,0 +1,63 @@
+﻿<Window x:Class="MessengerWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MessengerWPF.View"
+        mc:Ignorable="d"
+        Title="ОКЭИ Чат" Height="800" Width="1200"
+        ResizeMode="NoResize">
+    <Grid>
+        <TabControl BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
+            <TabItem Template="{StaticResource NavigationTabItem}" IsEnabled="False">
+                <TabItem.Header>
+                    <Image Source="/src/img/logo.png"/>
+                </TabItem.Header>
+            </TabItem>
+            <TabItem Template="{StaticResource NavigationTabItem}">
+                <TabItem.Header>Чат</TabItem.Header>
+                <TabItem.Content>
+                    <Grid Margin="-5, -2">
+                        <Grid.Background>
+                            <ImageBrush ImageSource="/src/img/background.jpg"/>
+                        </Grid.Background>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <DockPanel Grid.Column="1">
+                            <DockPanel Margin="20">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="46"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <!--#region <Searcher> -->
+                                    <DockPanel Grid.Row="0">
+                                        <TextBox x:Name="SearchTextBox" Template="{StaticResource StandartTextBox}" Tag="Поиск..." TextChanged="SearchTextBox_TextChanged"/>
+                                    </DockPanel>
+                                    <!--#endregion-->
+                                    <!--#region <ChatList> -->
+                                    <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
+                                    <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
+                                        <ListView x:Name="ChatsListView" Background="Transparent" ItemsSource="{Binding }" BorderThickness="0">
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Height="46">
+                                                        <TextBlock Text="{Binding Name}"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
+                                        </ListView>
+                                    </ScrollViewer>
+                                    <!--#endregion-->
+                                </Grid>
+                            </DockPanel>
+                        </DockPanel>
+                    </Grid>
+                </TabItem.Content>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
