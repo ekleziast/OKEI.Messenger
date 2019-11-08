@@ -1,4 +1,4 @@
-﻿<Window x:Class="MessengerWPF.View.AuthWindow"
+﻿<Window x:Class="MessengerWPF.View.RegisterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -52,12 +52,22 @@
 
         <Grid Grid.Column="1" Grid.Row="0">
             <DockPanel>
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock FontSize="16" Text="Логин" Margin="0, 0, 0, 5"/>
-                    <TextBox x:Name="LoginTB" Template="{StaticResource StandartTextBox}" Width="300" Margin="0, 0, 0, 25"/>
-                    <TextBlock FontSize="16" Text="Пароль" Margin="0, 0, 0, 5"/>
-                    <PasswordBox x:Name="PasswordTB" Template="{StaticResource StandartPasswordBox}" Width="300"/>
-                </StackPanel>
+                <ScrollViewer>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0, 20">
+                        <TextBlock FontSize="16" Text="Логин" Margin="0, 0, 0, 5"/>
+                        <TextBox x:Name="LoginTB" Template="{StaticResource StandartTextBox}" Width="300" Margin="0, 0, 0, 10"/>
+                        <TextBlock FontSize="16" Text="Пароль" Margin="0, 0, 0, 5"/>
+                        <PasswordBox x:Name="PasswordTB" Template="{StaticResource StandartPasswordBox}" Width="300" Margin="0, 0, 0, 10"/>
+                        
+                        <TextBlock FontSize="16" Text="Имя" Margin="0, 0, 0, 5"/>
+                        <TextBox x:Name="NameTB" Template="{StaticResource StandartTextBox}" Width="300" Margin="0, 0, 0, 10"/>
+                        <TextBlock FontSize="16" Text="Фамилия" Margin="0, 0, 0, 5"/>
+                        <TextBox x:Name="SurNameTB" Template="{StaticResource StandartTextBox}" Width="300" Margin="0, 0, 0, 10"/>
+                        <TextBlock FontSize="16" HorizontalAlignment="Center" Text="Фотография" Margin="0, 0, 0, 5"/>
+                        <Image x:Name="SelectedPhoto" Visibility="Collapsed" Width="300" Margin="0, 10"/>
+                        <Button x:Name="SelectPhotoButton" Template="{StaticResource StandartButton}" Content="Выбрать фотографию" Width="200" Margin="0, 0, 0, 10" Click="SelectPhotoButton_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
             </DockPanel>
         </Grid>
 
@@ -66,8 +76,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="RegisterButton" Content="Регистрация" Template="{StaticResource PrimaryButton}" Grid.Column="0" Width="150" Click="RegisterButton_Click"/>
-            <Button x:Name="LoginButton" Content="Войти" Template="{StaticResource StandartButton}" Grid.Column="1" Width="150" Margin="10, 0, 30, 0" Click="LoginButton_Click"/>
+            <Button x:Name="CancelButton" Content="Отмена" Template="{StaticResource StandartButton}" Grid.Column="0" Width="150" Click="CancelButton_Click"/>
+            <Button x:Name="RegisterButton" Content="Принять" Template="{StaticResource PrimaryButton}" Grid.Column="1" Width="150" Margin="10, 0, 30, 0" Click="RegisterButton_Click"/>
         </Grid>
     </Grid>
 </Window>

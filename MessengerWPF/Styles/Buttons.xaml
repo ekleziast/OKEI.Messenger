@@ -42,7 +42,7 @@
     </ControlTemplate>
 
     <ControlTemplate TargetType="Button" x:Key="PrimaryButton">
-        <Border x:Name="ButtonBorder" Background="{DynamicResource blue_0}" Height="36" CornerRadius="3">
+        <Border x:Name="ButtonBorder" Background="{StaticResource blue_0}" Height="36" CornerRadius="3">
             <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" FontFamily="{DynamicResource RobotoRegular}" FontSize="14"/>
         </Border>
         <ControlTemplate.Triggers>

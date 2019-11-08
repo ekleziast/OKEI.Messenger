@@ -1,6 +1,7 @@
-﻿using ContextLibrary;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,12 +17,11 @@ using System.Windows.Shapes;
 namespace MessengerWPF.View
 {
     /// <summary>
-    /// Логика взаимодействия для AuthWindow.xaml
+    /// Логика взаимодействия для RegisterWindow.xaml
     /// </summary>
-    public partial class AuthWindow : Window
+    public partial class RegisterWindow : Window
     {
-        public static MessengerClient client;
-        public AuthWindow()
+        public RegisterWindow()
         {
             InitializeComponent();
         }
@@ -31,22 +31,27 @@ namespace MessengerWPF.View
             System.Diagnostics.Process.Start("https://github.com/ramil2321/MessengerOKEI");
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private void SelectPhotoButton_Click(object sender, RoutedEventArgs e)
         {
-            Person person = new Person { Login = LoginTB.Text, Password = PasswordTB.Password };
-            client.Person = person;
-            if (client.Authorize())
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "Image files(*.jpg, *.jpeg, *.png) | *.jpg; *.jpeg; *.png";
+
+            if (fileDialog.ShowDialog() != null)
             {
-                this.Hide();
-                MainWindow main = new MainWindow();
-                main.Show();
+                byte[] img = File.ReadAllBytes(fileDialog.FileName);
+                SelectedPhoto.Source = ByteToImageConverter.ByteToImage(img);
+                SelectedPhoto.Visibility = Visibility.Visible;
             }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
-            RegisterWindow registerWindow = new RegisterWindow();
-            registerWindow.Show();
+
         }
     }
 }
