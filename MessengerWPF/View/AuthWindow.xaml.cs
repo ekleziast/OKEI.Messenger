@@ -20,7 +20,7 @@ namespace MessengerWPF.View
     /// </summary>
     public partial class AuthWindow : Window
     {
-        public static MessengerClient client;
+        public static MessengerClient Client;
         public AuthWindow()
         {
             InitializeComponent();
@@ -34,8 +34,8 @@ namespace MessengerWPF.View
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             Person person = new Person { Login = LoginTB.Text, Password = PasswordTB.Password };
-            client = new MessengerClient(person);
-            if (client.Authorize())
+            Client = new MessengerClient(person);
+            if (Client.Authorize())
             {
                 this.Hide();
                 MainWindow main = new MainWindow();

@@ -13,6 +13,7 @@
                 <ResourceDictionary Source="Styles\Inputs.xaml"/>
                 <ResourceDictionary Source="Styles\Navigations.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+            
             <local:DateTimeConverter x:Key="DateTimeConverterXAML"/>
             <local:MultiValuesConverter x:Key="MultiValuesConverterXAML"/>
             <local:MessageConverter x:Key="MessageConverterXAML"/>

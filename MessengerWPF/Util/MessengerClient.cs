@@ -33,18 +33,19 @@ namespace MessengerWPF
             return true;
         }
 
-        public async Task<bool> Register()
+        public bool Register()
         {
             RegisterJSON jSON = new RegisterJSON { Person = Person };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             SendMessage(jsonString);
             dynamic jsonResponse;
+            IPEndPoint remoteIp = null; // адрес входящего подключения
             try
             {
-                UdpReceiveResult result = await Client.ReceiveAsync(); // получаем данные
-                string response = Encoding.Unicode.GetString(result.Buffer);
+                byte[] data = Client.Receive(ref remoteIp); // получаем данные
 
+                string response = Encoding.Unicode.GetString(data);
                 jsonResponse = JsonConvert.DeserializeObject(response);
             }
             catch (Exception ex)
@@ -63,11 +64,8 @@ namespace MessengerWPF
         {
             try
             {
-                while (true)
-                {
-                    byte[] data = Encoding.Unicode.GetBytes(message);
-                    Client.Send(data, data.Length, SERVERADDRESS, SERVERPORT); // отправка
-                }
+                byte[] data = Encoding.Unicode.GetBytes(message);
+                Client.Send(data, data.Length, SERVERADDRESS, SERVERPORT); // отправка
             }
             catch (Exception ex)
             {
@@ -94,7 +92,7 @@ namespace MessengerWPF
 
         public class RegisterJSON
         {
-            public int Code = 2;
+            public int Code = 4;
             public Person Person { get; set; }
         }
     }
