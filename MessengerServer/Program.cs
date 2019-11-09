@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -40,11 +41,17 @@ namespace MessengerServer
                         $"({DateTime.Now.ToShortTimeString()}) {remoteIp.Address.ToString()}:{remoteIp.Port} - " +
                         $"{message}"); // Logging
 
+                    // Parsing
+                    dynamic jsonMessage = JsonConvert.DeserializeObject(message);
+                    ProcessMessage(jsonMessage);
+
+                    // Добавление клиента в список подключенных
                     bool isClientInCollection = Clients.Any(o =>
                     o.Address.ToString() == remoteIp.Address.ToString() &&
                     o.Port == remoteIp.Port);
                     if (!isClientInCollection) Clients.Add(remoteIp);
                     
+                    // Широковещательная рассылка сообщения
                     BroadcastMessage(message, remoteIp);
                 }
             }
@@ -55,6 +62,19 @@ namespace MessengerServer
             finally
             {
                 receiver.Close();
+            }
+        }
+
+        private static void ProcessMessage(dynamic json)
+        {
+            switch (json.Code)
+            {
+                // Регистрация
+                case 4:
+                    break;
+                // Авторизация
+                case 5:
+                    break;
             }
         }
 

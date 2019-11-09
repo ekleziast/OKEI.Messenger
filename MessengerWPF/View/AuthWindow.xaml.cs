@@ -34,7 +34,7 @@ namespace MessengerWPF.View
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             Person person = new Person { Login = LoginTB.Text, Password = PasswordTB.Password };
-            client.Person = person;
+            client = new MessengerClient(person);
             if (client.Authorize())
             {
                 this.Hide();
