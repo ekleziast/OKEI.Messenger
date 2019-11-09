@@ -43,7 +43,7 @@ namespace MessengerServer
 
                     // Parsing
                     dynamic jsonMessage = JsonConvert.DeserializeObject(message);
-                    ProcessMessage(jsonMessage);
+                    ProcessMessage(jsonMessage, remoteIp);
 
                     // Добавление клиента в список подключенных
                     bool isClientInCollection = Clients.Any(o =>
@@ -65,12 +65,15 @@ namespace MessengerServer
             }
         }
 
-        private static void ProcessMessage(dynamic json)
+        private static void ProcessMessage(dynamic json, IPEndPoint ip)
         {
-            switch (json.Code)
+            Console.WriteLine(json.Code);
+            Console.WriteLine(Convert.ToInt32(json.Code));
+            switch (Convert.ToInt32(json.Code))
             {
                 // Регистрация
                 case 4:
+                    SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = "" }), ip);
                     break;
                 // Авторизация
                 case 5:
@@ -104,6 +107,31 @@ namespace MessengerServer
             {
                 sender.Close();
             }
+        }
+
+        private static void SendMessageToClient(string message, IPEndPoint ip)
+        {
+            UdpClient sender = new UdpClient(); // создаем UdpClient для отправки сообщений
+
+            byte[] data = Encoding.Unicode.GetBytes(message);
+            try
+            {
+                sender.Send(data, data.Length, ip);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                sender.Close();
+            }
+        }
+
+        private class DefaultResponse
+        {
+            public int Code { get; set; }
+            public string Content { get; set; }
         }
     }
 }
