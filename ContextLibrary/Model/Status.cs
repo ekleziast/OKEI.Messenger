@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContextLibrary
 {
-    [Table("Statuses")]
+    [Table("Status")]
     public class Status
     {
         [Key]

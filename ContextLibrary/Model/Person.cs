@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContextLibrary
 {
-    [Table("Persons")]
+    [Table("Person")]
     public class Person
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

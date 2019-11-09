@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContextLibrary
 {
-    [Table("Members")]
+    [Table("Member")]
     public class Member
     {
         [Key]
