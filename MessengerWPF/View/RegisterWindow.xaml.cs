@@ -54,7 +54,7 @@ namespace MessengerWPF.View
             this.Close();
         }
 
-        private async void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             if (!CheckValues()) { 
                 ErrorAlert();
@@ -72,9 +72,10 @@ namespace MessengerWPF.View
 
             AuthWindow.Client = new MessengerClient(person);
             bool result = AuthWindow.Client.Register();
-            if (!result)
+            if (result)
             {
-                ErrorAlert("Возникла ошибка. Проверьте интернет-соединение.");
+                MessageBox.Show("Вы успешно зарегистрировались!\nИспользуйте свои данные для входа.", "Добро пожаловать!", MessageBoxButton.OK, MessageBoxImage.None);
+                this.Close();
             }
         }
 

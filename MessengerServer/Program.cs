@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ContextLibrary;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace MessengerServer
     {
         public static readonly int PORT = 8005;
 
-        static List<IPEndPoint> Clients = new List<IPEndPoint>(); // Список клиентов
+        static Dictionary<Person, IPEndPoint> Clients = new Dictionary<Person, IPEndPoint>(); // Список клиентов
         static void Main(string[] args)
         {
             Console.WriteLine("Сервер запущен. Ожидание подключения...");
@@ -45,11 +46,6 @@ namespace MessengerServer
                     dynamic jsonMessage = JsonConvert.DeserializeObject(message);
                     ProcessMessage(jsonMessage, remoteIp);
 
-                    // Добавление клиента в список подключенных
-                    bool isClientInCollection = Clients.Any(o =>
-                    o.Address.ToString() == remoteIp.Address.ToString() &&
-                    o.Port == remoteIp.Port);
-                    if (!isClientInCollection) Clients.Add(remoteIp);
                     
                     // Широковещательная рассылка сообщения
                     BroadcastMessage(message, remoteIp);
@@ -67,17 +63,86 @@ namespace MessengerServer
 
         private static void ProcessMessage(dynamic json, IPEndPoint ip)
         {
-            Console.WriteLine(json.Code);
-            Console.WriteLine(Convert.ToInt32(json.Code));
+            string errorMessage;
+            bool result = false;
+            Person p;
+
             switch (Convert.ToInt32(json.Code))
             {
                 // Регистрация
                 case 4:
-                    SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = "" }), ip);
+                    p = new Person
+                    {
+                        ID = json.Person.ID,
+                        Login = json.Person.Login,
+                        Password = json.Person.Password,
+                        Name = json.Person.Name,
+                        SurName = json.Person.SurName
+                    };
+                    // p.Photo = new Photo { ID = p.ID, PhotoSource = json.Person.Photo.PhotoSource };
+                    result = Register(p, out errorMessage);
+                    if (result)
+                    {
+                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+                        
+                        // Добавление клиента в список подключенных
+                        bool isClientInCollection = Clients.Any(o =>
+                        o.Value.Address.ToString() == ip.Address.ToString() &&
+                        o.Value.Port == ip.Port);
+                        if (!isClientInCollection) Clients.Add(p, ip);
+                    }
+                    else
+                    {
+                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                    }
                     break;
                 // Авторизация
                 case 5:
+                    p = new Person
+                    {
+                        Login = json.Person.Login,
+                        Password = json.Person.Password
+                    };
+                    result = Register(p, out errorMessage);
+                    if (result)
+                    {
+                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+
+                        // Добавление клиента в список подключенных
+                        bool isClientInCollection = Clients.Any(o =>
+                        o.Value.Address.ToString() == ip.Address.ToString() &&
+                        o.Value.Port == ip.Port);
+                        if (!isClientInCollection) Clients.Add(p, ip);
+                    }
+                    else
+                    {
+                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                    }
                     break;
+            }
+        }
+
+        private static bool Register(Person person, out string errorMessage)
+        {
+            try
+            {
+                using(Context db = new Context())
+                {
+                    if(db.Persons.Any(o => o.Login == person.Login))
+                    {
+                        errorMessage = "Пользователь с таким логином уже зарегистрирован в системе.";
+                        return false;
+                    }
+                    db.Persons.Add(person);
+                    db.SaveChanges();
+                }
+                errorMessage = "";
+                return true;
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+                return false;
             }
         }
 
@@ -93,10 +158,10 @@ namespace MessengerServer
             byte[] data = Encoding.Unicode.GetBytes(message);
             try
             {
-                Clients.ForEach(o => {
-                    if ($"{o.Address.ToString()}:{o.Port}" != $"{ip.Address.ToString()}:{ip.Port}")
+                Clients.ToList().ForEach(o => {
+                    if ($"{o.Value.Address.ToString()}:{o.Value.Port}" != $"{ip.Address.ToString()}:{ip.Port}")
                     {
-                        sender.Send(data, data.Length, o);
+                        sender.Send(data, data.Length, o.Value);
                     }
                 });
             } catch(Exception ex)

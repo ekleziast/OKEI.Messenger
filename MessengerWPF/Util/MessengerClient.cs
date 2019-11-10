@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace MessengerWPF
 {
@@ -50,10 +51,19 @@ namespace MessengerWPF
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ErrorAlert(ex.Message);
                 return false;
             }
-            return Convert.ToInt32(jsonResponse.Code) == 1;
+            if (Convert.ToInt32(jsonResponse.Code) == 0)
+            {
+                Console.WriteLine(jsonResponse.Content);
+                ErrorAlert((string)jsonResponse.Content);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
 
         }
         /// <summary>
@@ -69,10 +79,13 @@ namespace MessengerWPF
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ErrorAlert(ex.Message);
             }
         }
 
+        /// <summary>
+        /// Прослушивание сообщений в бесконечном цикле
+        /// </summary>
         public void ReceiveMessage()
         {
             IPEndPoint remoteIp = null; // адрес входящего подключения
@@ -86,7 +99,7 @@ namespace MessengerWPF
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ErrorAlert(ex.Message);
             }
         }
 
@@ -94,6 +107,11 @@ namespace MessengerWPF
         {
             public int Code = 4;
             public Person Person { get; set; }
+        }
+
+        private void ErrorAlert(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
