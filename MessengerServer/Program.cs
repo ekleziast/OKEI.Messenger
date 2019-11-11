@@ -90,11 +90,11 @@ namespace MessengerServer
 
                 // Новое сообщение
                 case 6:
+                    NewMessageProcess(json, ip);
                     break;
 
                 // Новый диалог
                 case 7:
-                    NewMessageProcess(json, ip);
                     break;
             }
         }
