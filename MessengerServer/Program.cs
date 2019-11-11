@@ -61,67 +61,165 @@ namespace MessengerServer
             }
         }
 
+        /// <summary>
+        /// Метод обработки входящих сообщений
+        /// </summary>
+        /// <param name="json">JSON входящего сообщения</param>
+        /// <param name="ip">IP адрес отправителя сообщения</param>
         private static void ProcessMessage(dynamic json, IPEndPoint ip)
         {
-            string errorMessage;
-            bool result = false;
-            Person p;
+            int _code;
+            bool isValidQuery = Int32.TryParse(json.Code, out _code);
+            if (!isValidQuery)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = "Неверный код запроса." }), ip);
+                return;
+            }
 
-            switch (Convert.ToInt32(json.Code))
+            switch (_code)
             {
                 // Регистрация
                 case 4:
-                    p = new Person
-                    {
-                        ID = json.Person.ID,
-                        Login = json.Person.Login,
-                        Password = json.Person.Password,
-                        Name = json.Person.Name,
-                        SurName = json.Person.SurName
-                    };
-                    // p.Photo = new Photo { ID = p.ID, PhotoSource = json.Person.Photo.PhotoSource };
-                    result = Register(p, out errorMessage);
-                    if (result)
-                    {
-                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
-                        
-                        // Добавление клиента в список подключенных
-                        bool isClientInCollection = Clients.Any(o =>
-                        o.Value.Address.ToString() == ip.Address.ToString() &&
-                        o.Value.Port == ip.Port);
-                        if (!isClientInCollection) Clients.Add(p, ip);
-                    }
-                    else
-                    {
-                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
-                    }
+                    RegisterProcess(json, ip);
                     break;
+
                 // Авторизация
                 case 5:
-                    p = new Person
-                    {
-                        Login = json.Person.Login,
-                        Password = json.Person.Password
-                    };
-                    result = Register(p, out errorMessage);
-                    if (result)
-                    {
-                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+                    AuthProcess(json, ip);
+                    break;
 
-                        // Добавление клиента в список подключенных
-                        bool isClientInCollection = Clients.Any(o =>
-                        o.Value.Address.ToString() == ip.Address.ToString() &&
-                        o.Value.Port == ip.Port);
-                        if (!isClientInCollection) Clients.Add(p, ip);
-                    }
-                    else
-                    {
-                        SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
-                    }
+                // Новое сообщение
+                case 6:
+                    break;
+
+                // Новый диалог
+                case 7:
+                    NewMessageProcess(json, ip);
                     break;
             }
         }
+        /// <summary>
+        /// Обработчик нового сообщения в чате
+        /// </summary>
+        private static void NewMessageProcess(dynamic json, IPEndPoint ip)
+        {
 
+        }
+
+        /// <summary>
+        /// Обработчик JSON регистрации
+        /// </summary>
+        private static void RegisterProcess(dynamic json, IPEndPoint ip)
+        {
+            string errorMessage;
+            bool result;
+
+            Person p = new Person
+            {
+                ID = json.Person.ID,
+                Login = json.Person.Login,
+                Password = json.Person.Password,
+                Name = json.Person.Name,
+                SurName = json.Person.SurName
+            };
+            // TODO: Добавление фотографии
+            // p.Photo = new Photo { ID = p.ID, PhotoSource = json.Person.Photo.PhotoSource };
+            result = Register(p, out errorMessage);
+            if (result)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+                ConnectClient(p, ip);
+            }
+            else
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+            }
+        }
+
+        /// <summary>
+        /// Обработчик JSON авторизации
+        /// </summary>
+        private static void AuthProcess(dynamic json, IPEndPoint ip)
+        {
+            string errorMessage;
+            bool result;
+
+            Person p = new Person
+            {
+                Login = json.Person.Login,
+                Password = json.Person.Password
+            };
+            result = Auth(p, out errorMessage);
+            if (result)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+                ConnectClient(p, ip);
+            }
+            else
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+            }
+        }
+
+        /// <summary>
+        /// Подключает пользователя к серверу
+        /// </summary>
+        /// <param name="person">Аккаунт клиента</param>
+        /// <param name="ip">IP адрес клиента</param>
+        private static void ConnectClient(Person person, IPEndPoint ip)
+        {
+            if (!IsPersonLogged(person)) { Clients.Add(person, ip); }
+        }
+
+        /// <summary>
+        /// Проверяет, подключен ли пользователь к серверу
+        /// </summary>
+        /// <param name="person">Пользователь</param>
+        private static bool IsPersonLogged(Person person)
+        {
+            foreach(var o in Clients.Keys)
+            {
+                if(o.ID == person.ID) { return true; }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Авторизует пользователя в системе
+        /// </summary>
+        /// <param name="person">Аккаунт пользователя</param>
+        /// <param name="errorMessage">Сообщение об ошибке</param>
+        /// <returns>Результат прохождения авторизации</returns>
+        private static bool Auth(Person person, out string errorMessage)
+        {
+            try
+            {
+                using (Context db = new Context())
+                {
+                    Person p = db.Persons.Where(o => o.Login == person.Login && o.Password == person.Password).FirstOrDefault();
+                    if (p == null)
+                    {
+                        errorMessage = "Пользователь с этой парой логин-пароль не найден в системе.";
+                        return false;
+                    }
+                }
+                errorMessage = "";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Регистрирует пользователя в системе
+        /// </summary>
+        /// <param name="person">Аккаунт пользователя</param>
+        /// <param name="errorMessage">Сообщение об ошибке</param>
+        /// <returns>Результат прохождения регистрации</returns>
         private static bool Register(Person person, out string errorMessage)
         {
             try
@@ -174,6 +272,11 @@ namespace MessengerServer
             }
         }
 
+        /// <summary>
+        /// Отправляет сообщение конкретному клиенту
+        /// </summary>
+        /// <param name="message">Текст сообщения</param>
+        /// <param name="ip">Адрес клиента-получателя</param>
         private static void SendMessageToClient(string message, IPEndPoint ip)
         {
             UdpClient sender = new UdpClient(); // создаем UdpClient для отправки сообщений

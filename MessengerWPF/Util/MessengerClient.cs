@@ -29,16 +29,8 @@ namespace MessengerWPF
             Client = new UdpClient(new Random().Next(30000, 50000));
         }
 
-        public bool Authorize()
+        public bool GetBoolCode(string jsonString)
         {
-            return true;
-        }
-
-        public bool Register()
-        {
-            RegisterJSON jSON = new RegisterJSON { Person = Person };
-            string jsonString = JsonConvert.SerializeObject(jSON);
-
             SendMessage(jsonString);
             dynamic jsonResponse;
             IPEndPoint remoteIp = null; // адрес входящего подключения
@@ -64,7 +56,22 @@ namespace MessengerWPF
             {
                 return true;
             }
+        }
 
+        public bool Authorize()
+        {
+            AuthJSON jSON = new AuthJSON { Person = Person };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            return GetBoolCode(jsonString);
+        }
+
+        public bool Register()
+        {
+            RegisterJSON jSON = new RegisterJSON { Person = Person };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            return GetBoolCode(jsonString);
         }
         /// <summary>
         /// Отправляет сообщение на сервер
@@ -106,6 +113,11 @@ namespace MessengerWPF
         public class RegisterJSON
         {
             public int Code = 4;
+            public Person Person { get; set; }
+        }
+        public class AuthJSON
+        {
+            public int Code = 5;
             public Person Person { get; set; }
         }
 
