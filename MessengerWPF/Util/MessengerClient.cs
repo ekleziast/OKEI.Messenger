@@ -60,7 +60,7 @@ namespace MessengerWPF
 
         public bool Authorize()
         {
-            AuthJSON jSON = new AuthJSON { Person = Person };
+            DefaultJSON jSON = new DefaultJSON{ Code = 5, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             return GetBoolCode(jsonString);
@@ -68,7 +68,7 @@ namespace MessengerWPF
 
         public bool Register()
         {
-            RegisterJSON jSON = new RegisterJSON { Person = Person };
+            DefaultJSON jSON = new DefaultJSON { Code = 4, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             return GetBoolCode(jsonString);
@@ -110,15 +110,10 @@ namespace MessengerWPF
             }
         }
 
-        public class RegisterJSON
+        public class DefaultJSON
         {
-            public int Code = 4;
-            public Person Person { get; set; }
-        }
-        public class AuthJSON
-        {
-            public int Code = 5;
-            public Person Person { get; set; }
+            public int Code { get; set; }
+            public string Content { get; set; }
         }
 
         private void ErrorAlert(string message)

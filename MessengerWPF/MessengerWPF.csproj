@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\EntityFramework.6.3.0\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -39,37 +38,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNet.SignalR.Client, Version=2.4.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNet.SignalR.Client.2.4.1\lib\net45\Microsoft.AspNet.SignalR.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.Connections.Abstractions, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.Connections.Abstractions.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.Connections.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Connections.Client, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.Http.Connections.Client.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Connections.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Connections.Common, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.Http.Connections.Common.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Connections.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Features, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.Http.Features.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Features.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Client, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Client.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Client.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Client.Core.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Client.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Common, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Common.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.AspNetCore.SignalR.Protocols.Json, Version=3.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.AspNetCore.SignalR.Protocols.Json.3.0.0\lib\netstandard2.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.1.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -279,13 +251,10 @@
     <PropertyGroup>
       <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.3.0\build\EntityFramework.props'))" />
-    <Error Condition="!Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.3.0\build\EntityFramework.targets'))" />
     <Error Condition="!Exists('..\packages\Leadtools.Kernel.20.0.0.5\build\net40\Leadtools.Kernel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Leadtools.Kernel.20.0.0.5\build\net40\Leadtools.Kernel.targets'))" />
     <Error Condition="!Exists('..\packages\Leadtools.Formats.Raster.Common.20.0.0.5\build\net40\Leadtools.Formats.Raster.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Leadtools.Formats.Raster.Common.20.0.0.5\build\net40\Leadtools.Formats.Raster.Common.targets'))" />
     <Error Condition="!Exists('..\packages\Leadtools.Image.Processing.20.0.0.5\build\net40\Leadtools.Image.Processing.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Leadtools.Image.Processing.20.0.0.5\build\net40\Leadtools.Image.Processing.targets'))" />
   </Target>
-  <Import Project="..\packages\EntityFramework.6.3.0\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.targets')" />
   <Import Project="..\packages\Leadtools.Kernel.20.0.0.5\build\net40\Leadtools.Kernel.targets" Condition="Exists('..\packages\Leadtools.Kernel.20.0.0.5\build\net40\Leadtools.Kernel.targets')" />
   <Import Project="..\packages\Leadtools.Formats.Raster.Common.20.0.0.5\build\net40\Leadtools.Formats.Raster.Common.targets" Condition="Exists('..\packages\Leadtools.Formats.Raster.Common.20.0.0.5\build\net40\Leadtools.Formats.Raster.Common.targets')" />
   <Import Project="..\packages\Leadtools.Image.Processing.20.0.0.5\build\net40\Leadtools.Image.Processing.targets" Condition="Exists('..\packages\Leadtools.Image.Processing.20.0.0.5\build\net40\Leadtools.Image.Processing.targets')" />
