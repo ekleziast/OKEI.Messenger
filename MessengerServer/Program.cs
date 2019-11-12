@@ -28,7 +28,10 @@ namespace MessengerServer
                 Console.WriteLine(ex.Message);
             }
         }
-        private static void ReceiveMessage()
+        /// <summary>
+        /// Слушатель входящих сообщений
+        /// </summary>
+        public static void ReceiveMessage()
         {
             UdpClient receiver = new UdpClient(PORT); // UdpClient для получения данных
             IPEndPoint remoteIp = null; // адрес входящего подключения
@@ -69,28 +72,30 @@ namespace MessengerServer
         private static void ProcessMessage(dynamic json, IPEndPoint ip)
         {
             int _code;
-            bool isValidQuery = Int32.TryParse(json.Code, out _code);
+            bool isValidQuery = Int32.TryParse((string)json.Code, out _code);
             if (!isValidQuery)
             {
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = "Неверный код запроса." }), ip);
                 return;
             }
 
+            dynamic _content = JsonConvert.DeserializeObject((string)json.Content);
+
             switch (_code)
             {
                 // Регистрация
                 case 4:
-                    RegisterProcess(json, ip);
+                    RegisterProcess(_content, ip);
                     break;
 
                 // Авторизация
                 case 5:
-                    AuthProcess(json, ip);
+                    AuthProcess(_content, ip);
                     break;
 
                 // Новое сообщение
                 case 6:
-                    NewMessageProcess(json, ip);
+                    NewMessageProcess(_content, ip);
                     break;
 
                 // Новый диалог
@@ -103,7 +108,106 @@ namespace MessengerServer
         /// </summary>
         private static void NewMessageProcess(dynamic json, IPEndPoint ip)
         {
+            string errorMessage;
+            Message message;
+            Person sender;
 
+            sender = Clients.Where(o => o.Value == ip).FirstOrDefault().Key;
+            if (sender == null)
+            {
+                errorMessage = "Вы не авторизованы!";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                return;
+            }
+
+            try
+            {
+                message = new Message
+                {
+                    PersonID = sender.ID,
+                    ConversationID = json.ConversationID,
+                    Text = json.Text
+                };
+            }catch
+            {
+                errorMessage = "Не удалось распознать сообщение.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                return;
+            }
+
+            bool result = NewMessage(sender, message, out errorMessage);
+            if (result)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = "Сообщение успешно отправлено." }), ip);
+            }
+            else
+            {
+
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+            }
+
+
+        }
+
+        /// <summary>
+        /// Отправляет сообщение (код 6) на сервер и оповещает об этом получателей
+        /// </summary>
+        private static bool NewMessage(Person person, Message message, out string errorMessage)
+        {
+            errorMessage = "";
+            List<Person> _receivers = new List<Person>();
+            try
+            {
+                using (Context db = new Context())
+                {
+                    db.Messages.Add(message);
+                    db.SaveChanges();
+
+                    db.Members.Include("Person").Where(o => o.PersonID != person.ID).ToList().ForEach(o => _receivers.Add(o.Person));
+                }
+            }catch(Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+
+            bool result = BroadcastMessage(
+                new DefaultResponse {
+                    Code = 6,
+                    Content = JsonConvert.SerializeObject(message)
+                }, person, _receivers, out errorMessage);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Отправляет сообщение всем получателям, кроме отправителя
+        /// </summary>
+        private static bool BroadcastMessage(DefaultResponse response, Person sender, List<Person> receivers, out string errorMessage)
+        {
+            errorMessage = "";
+            try
+            {
+                receivers.ForEach(receiver =>
+                {
+                    Clients.ToList().ForEach(client =>
+                    {
+                        if (receiver.ID == client.Key.ID)
+                        {
+                            if (receiver.ID != sender.ID)
+                            {
+                                SendMessageToClient(JsonConvert.SerializeObject(response), client.Value);
+                            }
+                        }
+                    });
+                });
+            }catch(Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -113,15 +217,25 @@ namespace MessengerServer
         {
             string errorMessage;
             bool result;
+            Person p;
 
-            Person p = new Person
+            try
             {
-                ID = json.Person.ID,
-                Login = json.Person.Login,
-                Password = json.Person.Password,
-                Name = json.Person.Name,
-                SurName = json.Person.SurName
-            };
+                p = new Person
+                {
+                    ID = json.ID,
+                    Login = json.Login,
+                    Password = json.Password,
+                    Name = json.Name,
+                    SurName = json.SurName
+                };
+            }catch
+            {
+                errorMessage = "Не удалось создать пользователя. Убедитесь, что все поля заполнены верно.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                return;
+            }
+
             // TODO: Добавление фотографии
             // p.Photo = new Photo { ID = p.ID, PhotoSource = json.Person.Photo.PhotoSource };
             result = Register(p, out errorMessage);
@@ -143,12 +257,23 @@ namespace MessengerServer
         {
             string errorMessage;
             bool result;
+            Person p;
 
-            Person p = new Person
+            try
             {
-                Login = json.Person.Login,
-                Password = json.Person.Password
-            };
+                p = new Person
+                {
+                    Login = json.Login,
+                    Password = json.Password
+                };
+            }
+            catch
+            {
+                errorMessage = "Не удалось авторизоваться. Убедитесь, что все поля заполнены верно.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                return;
+            }
+
             result = Auth(p, out errorMessage);
             if (result)
             {
@@ -245,7 +370,7 @@ namespace MessengerServer
         }
 
         /// <summary>
-        /// Отправляет сообщение всем подключенным клиентам
+        /// Отправляет сообщение всем подключенным клиентам, кроме отправителя
         /// </summary>
         /// <param name="message">Текст сообщения</param>
         /// <param name="ip">IPEndPoint отправителя</param>
