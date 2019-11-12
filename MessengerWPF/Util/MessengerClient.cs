@@ -60,7 +60,7 @@ namespace MessengerWPF
 
         public bool Authorize()
         {
-            DefaultJSON jSON = new DefaultJSON{ Code = 5, Content = JsonConvert.SerializeObject(Person) };
+            DefaultJSON jSON = new DefaultJSON{ Code = (int) Codes.Authorization, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             return GetBoolCode(jsonString);
@@ -68,7 +68,7 @@ namespace MessengerWPF
 
         public bool Register()
         {
-            DefaultJSON jSON = new DefaultJSON { Code = 4, Content = JsonConvert.SerializeObject(Person) };
+            DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.Registraion, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             return GetBoolCode(jsonString);
@@ -114,6 +114,20 @@ namespace MessengerWPF
         {
             public int Code { get; set; }
             public string Content { get; set; }
+        }
+
+        public enum Codes : int
+        {
+            False = 0,
+            True = 1,
+            Confirmation = 2,
+            Registraion = 3,
+            Authorization = 4,
+            NewMessage = 5,
+            NewConversation = 6,
+            NewMember = 7,
+            RemoveMember = 8,
+            LeaveMember = 9,
         }
 
         private void ErrorAlert(string message)
