@@ -31,6 +31,10 @@ namespace ContextLibrary
         /// Таблица с участниками диалогов
         /// </summary>
         public DbSet<Member> Members { get; set; }
+        /// <summary>
+        /// Таблица с историей сообщений
+        /// </summary>
+        public DbSet<Message> Messages { get; set; }
 
     }
 }
