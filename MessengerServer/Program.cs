@@ -242,7 +242,6 @@ namespace MessengerServer
             if (result)
             {
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
-                ConnectClient(p, ip);
             }
             else
             {
@@ -326,6 +325,14 @@ namespace MessengerServer
                     {
                         errorMessage = "Пользователь с этой парой логин-пароль не найден в системе.";
                         return false;
+                    }
+                    else
+                    {
+                        if (Clients.Where(o => o.Key.Login == person.Login).FirstOrDefault().Key != null)
+                        {
+                            errorMessage = "Пользователь уже авторизован в системе на другом устройстве.\nПожалуйста, выйдите с другого устройства и подождите.";
+                            return false;
+                        }
                     }
                 }
                 errorMessage = "";
