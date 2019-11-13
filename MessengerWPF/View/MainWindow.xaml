@@ -6,7 +6,13 @@
         xmlns:local="clr-namespace:MessengerWPF.View"
         mc:Ignorable="d"
         Title="ОКЭИ Чат" Height="800" Width="1200"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize" Closing="Window_Closing">
+    <Window.Resources>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="{StaticResource RobotoRegular}"/>
+            <Setter Property="Margin" Value="0, 5"/>
+        </Style>
+    </Window.Resources>
     <Grid>
         <TabControl BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
             <TabItem Template="{StaticResource NavigationTabItem}" IsEnabled="False">
@@ -22,9 +28,10 @@
                             <ImageBrush ImageSource="/src/img/triangle_pattern.png" Opacity="0.2"/>
                         </Grid.Background>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="100"/>
                             <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="200"/>
+                            <ColumnDefinition Width="300"/>
+                            <ColumnDefinition Width="10"/>
                         </Grid.ColumnDefinitions>
                         <DockPanel Grid.Column="1">
                             <DockPanel Margin="20">
@@ -62,6 +69,45 @@
                                 </Grid>
                             </DockPanel>
                         </DockPanel>
+                        <!--#region <Profile> -->
+                        <DockPanel Grid.Column="2">
+                            <DockPanel Margin="20">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="200"/>
+                                        <RowDefinition Height="20"/>
+                                        <RowDefinition Height="400"/>
+                                    </Grid.RowDefinitions>
+                                    <!--#region <Profile> -->
+                                    <DockPanel Grid.Row="0" Background="Transparent">
+                                        <Border>
+                                            <Ellipse Width="200" Height="200">
+                                                <Ellipse.Stroke>
+                                                    <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                                                </Ellipse.Stroke>
+                                                <Ellipse.Fill>
+                                                    <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                                </Ellipse.Fill>
+                                            </Ellipse>
+                                        </Border>
+                                    </DockPanel>
+                                    <!--#endregion-->
+                                    <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="2"/>
+                                    <DockPanel Panel.ZIndex="1" Background="Transparent" Grid.Row="2" Margin="10">
+                                        <StackPanel>
+                                            <TextBlock Text="Статус" FontSize="18"/>
+                                            <ComboBox x:Name="OnlineStatusCB" Background="White" FontSize="16" SelectedIndex="0" FontFamily="{StaticResource RobotoRegular}" Padding="7" SelectionChanged="OnlineStatusCB_SelectionChanged">
+                                                <TextBlock Text="В сети" Margin="0" Foreground="Green"/>
+                                                <TextBlock Text="Отошел" Margin="0" Foreground="DarkOrange"/>
+                                                <TextBlock Text="Занят" Margin="0" Foreground="Red"/>
+                                                <TextBlock Text="Не в сети" Margin="0" Foreground="Gray"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Grid>
+                            </DockPanel>
+                        </DockPanel>
+                        <!--#endregion-->
                     </Grid>
                 </TabItem.Content>
             </TabItem>

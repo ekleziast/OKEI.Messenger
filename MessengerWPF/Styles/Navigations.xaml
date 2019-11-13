@@ -4,7 +4,7 @@
 
     <ControlTemplate TargetType="TabItem" x:Key="NavigationTabItem">
         <Border x:Name="NavigationTabItemBorder" Margin="0,0,10,-1" BorderThickness="0,0,0,1" Background="White" Height="46">
-            <ContentControl x:Name="NavigationTabItemContent" Content="{TemplateBinding Header}" Margin="12,2,12,2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+            <ContentControl x:Name="NavigationTabItemContent" Content="{TemplateBinding Header}" Margin="12,2,12,2" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
         </Border>
         <ControlTemplate.Triggers>
             <Trigger Property="IsSelected" Value="true">

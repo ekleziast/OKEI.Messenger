@@ -18,18 +18,46 @@ namespace MessengerWPF
         public static readonly string SERVERADDRESS = "127.0.0.1";
         public static readonly int LOCALPORT = 1800;
 
+        private static MessengerClient _instant;
+
         public UdpClient Client;
         public Person Person;
-        public MessengerClient(Person person)
+
+        private MessengerClient() { }
+
+        public static MessengerClient GetInstant(Person person)
         {
-            this.Person = person;
+            if(_instant == null)
+            {
+                _instant = new MessengerClient();
+            }
+            
+            _instant.Person = person;
             // FOR RELEASE
             // Client = new UdpClient(LOCALPORT);
             // FOR DEBUG
-            Client = new UdpClient(new Random().Next(30000, 50000));
+            _instant.Client = new UdpClient(new Random().Next(30000, 50000));
+
+            return _instant;
         }
 
-        public bool GetBoolCode(string jsonString)
+        public static MessengerClient GetInstant()
+        {
+            return _instant;
+        }
+        
+        public static void DisposeInstant()
+        {
+            _instant.LogOut();
+            _instant = null;
+        }
+
+        /// <summary>
+        /// Получение ответа с сервера
+        /// </summary>
+        /// <param name="jsonString"></param>
+        /// <returns></returns>
+        private DefaultJSON GetResponse(string jsonString)
         {
             SendMessage(jsonString);
             dynamic jsonResponse;
@@ -44,40 +72,76 @@ namespace MessengerWPF
             catch (Exception ex)
             {
                 ErrorAlert(ex.Message);
-                return false;
+                return new DefaultJSON { Code = (int) Codes.False, Content = ex.Message };
             }
-            if (Convert.ToInt32(jsonResponse.Code) == 0)
+            if ((int)(jsonResponse.Code) == (int) Codes.False)
             {
-                Console.WriteLine(jsonResponse.Content);
                 ErrorAlert((string)jsonResponse.Content);
-                return false;
             }
-            else
-            {
-                return true;
-            }
+            return new DefaultJSON { Code = (int)jsonResponse.Code, Content = (string)jsonResponse.Content };
         }
 
+        /// <summary>
+        /// Авторизация на сервере
+        /// </summary>
         public bool Authorize()
         {
-            DefaultJSON jSON = new DefaultJSON{ Code = (int) Codes.Authorization, Content = JsonConvert.SerializeObject(Person) };
+            DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.Authorization, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            return GetBoolCode(jsonString);
+            DefaultJSON response = GetResponse(jsonString);
+            if(response.Code == (int)Codes.True)
+            {
+                dynamic jsonResponse = JsonConvert.DeserializeObject(response.Content);
+                Person = new Person {
+                    ID = jsonResponse.ID,
+                    Login = jsonResponse.Login,
+                    Password = jsonResponse.Password,
+                    Name = jsonResponse.Name,
+                    SurName = jsonResponse.SurName
+                };
+                // TODO: Photo
+            }
+
+            return response.Code == (int)Codes.True;
         }
 
+        /// <summary>
+        /// Выход с сервера
+        /// </summary>
+        /// <returns></returns>
+        public bool LogOut()
+        {
+            DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.LogOut, Content = "" };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            DefaultJSON response = GetResponse(jsonString);
+
+            if(response.Code == (int)Codes.False)
+            {
+                ErrorAlert(response.Content);
+            }
+            return response.Code == (int)Codes.True;
+        }
+
+        /// <summary>
+        /// Регистрация на сервере
+        /// </summary>
+        /// <returns></returns>
         public bool Register()
         {
             DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.Registraion, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            return GetBoolCode(jsonString);
+            DefaultJSON response = GetResponse(jsonString);
+            return response.Code == (int)Codes.True;
         }
+
         /// <summary>
         /// Отправляет сообщение на сервер
         /// </summary>
         /// <param name="message">Текст сообщения</param>
-        public void SendMessage(string message)
+        private void SendMessage(string message)
         {
             try
             {
@@ -91,9 +155,9 @@ namespace MessengerWPF
         }
 
         /// <summary>
-        /// Прослушивание сообщений в бесконечном цикле
+        /// Прослушивание сообщений с сервера в бесконечном цикле
         /// </summary>
-        public void ReceiveMessage()
+        private void ReceiveMessages()
         {
             IPEndPoint remoteIp = null; // адрес входящего подключения
             try
@@ -110,26 +174,9 @@ namespace MessengerWPF
             }
         }
 
-        public class DefaultJSON
-        {
-            public int Code { get; set; }
-            public string Content { get; set; }
-        }
-
-        public enum Codes : int
-        {
-            False = 0,
-            True = 1,
-            Confirmation = 2,
-            Registraion = 3,
-            Authorization = 4,
-            NewMessage = 5,
-            NewConversation = 6,
-            NewMember = 7,
-            RemoveMember = 8,
-            LeaveMember = 9,
-        }
-
+        /// <summary>
+        /// Уведомление об ошибке
+        /// </summary>
         private void ErrorAlert(string message)
         {
             MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);

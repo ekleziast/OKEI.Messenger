@@ -84,22 +84,22 @@ namespace MessengerServer
             switch (_code)
             {
                 // Регистрация
-                case 4:
+                case 3:
                     RegisterProcess(_content, ip);
                     break;
 
                 // Авторизация
-                case 5:
+                case 4:
                     AuthProcess(_content, ip);
                     break;
 
                 // Новое сообщение
-                case 6:
+                case 5:
                     NewMessageProcess(_content, ip);
                     break;
 
                 // Новый диалог
-                case 7:
+                case 6:
                     break;
             }
         }
@@ -124,11 +124,10 @@ namespace MessengerServer
             {
                 message = new Message
                 {
-                    PersonID = sender.ID,
                     ConversationID = json.ConversationID,
                     Text = json.Text
                 };
-            }catch
+            } catch
             {
                 errorMessage = "Не удалось распознать сообщение.";
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
@@ -256,11 +255,11 @@ namespace MessengerServer
         {
             string errorMessage;
             bool result;
-            Person p;
+            Person person;
 
             try
             {
-                p = new Person
+                person = new Person
                 {
                     Login = json.Login,
                     Password = json.Password
@@ -273,11 +272,12 @@ namespace MessengerServer
                 return;
             }
 
-            result = Auth(p, out errorMessage);
+            Person validPerson;
+            result = Auth(person, out validPerson, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
-                ConnectClient(p, ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(validPerson) }), ip);
+                ConnectClient(validPerson, ip);
             }
             else
             {
@@ -292,18 +292,18 @@ namespace MessengerServer
         /// <param name="ip">IP адрес клиента</param>
         private static void ConnectClient(Person person, IPEndPoint ip)
         {
-            if (!IsPersonLogged(person)) { Clients.Add(person, ip); }
+            if (!IsAuthorized(person, ip)) { Clients.Add(person, ip); }
         }
 
         /// <summary>
         /// Проверяет, подключен ли пользователь к серверу
         /// </summary>
         /// <param name="person">Пользователь</param>
-        private static bool IsPersonLogged(Person person)
+        private static bool IsAuthorized(Person person, IPEndPoint ip)
         {
-            foreach(var o in Clients.Keys)
+            foreach(var o in Clients)
             {
-                if(o.ID == person.ID) { return true; }
+                if(o.Key.ID == person.ID && o.Value == ip) { return true; }
             }
             return false;
         }
@@ -313,14 +313,16 @@ namespace MessengerServer
         /// </summary>
         /// <param name="person">Аккаунт пользователя</param>
         /// <param name="errorMessage">Сообщение об ошибке</param>
+        /// <param name="p">Аккаунт, полученный с базы данных</param>
         /// <returns>Результат прохождения авторизации</returns>
-        private static bool Auth(Person person, out string errorMessage)
+        private static bool Auth(Person person, out Person p, out string errorMessage)
         {
+            p = null;
             try
             {
                 using (Context db = new Context())
                 {
-                    Person p = db.Persons.Where(o => o.Login == person.Login && o.Password == person.Password).FirstOrDefault();
+                    p = db.Persons.Where(o => o.Login == person.Login && o.Password == person.Password).FirstOrDefault();
                     if (p == null)
                     {
                         errorMessage = "Пользователь с этой парой логин-пароль не найден в системе.";

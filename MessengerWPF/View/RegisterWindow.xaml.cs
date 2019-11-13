@@ -23,6 +23,8 @@ namespace MessengerWPF.View
     /// </summary>
     public partial class RegisterWindow : Window
     {
+        private MessengerClient client;
+
         private bool isPhotoSelected = false;
         private byte[] selectedPhoto;
         public RegisterWindow()
@@ -70,8 +72,8 @@ namespace MessengerWPF.View
 
             //person.Photo = new Photo { ID = person.ID, PhotoSource = selectedPhoto };
 
-            AuthWindow.Client = new MessengerClient(person);
-            bool result = AuthWindow.Client.Register();
+            client = MessengerClient.GetInstant(person);
+            bool result = client.Register();
             if (result)
             {
                 MessageBox.Show("Вы успешно зарегистрировались!\nИспользуйте свои данные для входа.", "Добро пожаловать!", MessageBoxButton.OK, MessageBoxImage.None);
