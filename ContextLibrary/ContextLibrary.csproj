@@ -67,7 +67,9 @@
       <DependentUpon>201911120601418_TextMessage.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\Codes.cs" />
     <Compile Include="Model\Conversation.cs" />
+    <Compile Include="Model\DefaultJSON.cs" />
     <Compile Include="Model\Member.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\Person.cs" />
