@@ -34,6 +34,7 @@ namespace MessengerWPF.View
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
+            LoginButton.IsEnabled = false;
             Person person = new Person { Login = LoginTB.Text, Password = PasswordTB.Password };
             client = MessengerClient.GetInstant(person);
             if (await client.Authorize())
@@ -42,6 +43,7 @@ namespace MessengerWPF.View
                 MainWindow main = new MainWindow(this);
                 main.Show();
             }
+            LoginButton.IsEnabled = true;
         }
 
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
