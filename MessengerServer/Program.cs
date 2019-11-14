@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -26,7 +27,7 @@ namespace MessengerServer
                 receiveThread.Start();
             } catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
             }
         }
         /// <summary>
@@ -44,18 +45,17 @@ namespace MessengerServer
                     string message = Encoding.Unicode.GetString(data);
 
                     // Logging
-                    Error_Message(
+                    Message_Console(
                         $"({DateTime.Now.ToShortTimeString()}) {remoteIp.Address.ToString()}:{remoteIp.Port}");
-                    Message_Console(message + "\n");
+                    Console.WriteLine(message + "\n");
 
-                    // Parsing
-                    dynamic jsonMessage = JsonConvert.DeserializeObject(message);
-                    ProcessMessage(jsonMessage, remoteIp);
+                    // Processing
+                    ProcessMessage(message, remoteIp);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
             }
             finally
             {
@@ -68,37 +68,38 @@ namespace MessengerServer
         /// </summary>
         /// <param name="json">JSON входящего сообщения</param>
         /// <param name="ip">IP адрес отправителя сообщения</param>
-        private static void ProcessMessage(dynamic json, IPEndPoint ip)
+        private static void ProcessMessage(string json, IPEndPoint ip)
         {
-            int _code;
-            bool isValidQuery = Int32.TryParse((string)json.Code, out _code);
-            if (!isValidQuery)
+            DefaultJSON request;
+            try
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Неверный код запроса." }), ip);
+                request = JsonConvert.DeserializeObject<DefaultJSON>(json);
+            }
+            catch (Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Не удалось распознать запрос.\nПодробная информация: " + ex.Message  }), ip);
                 return;
             }
 
-            dynamic _content = JsonConvert.DeserializeObject((string)json.Content);
-
-            switch (_code)
+            switch (request.Code)
             {
                 case (int) Codes.Registraion:
-                    RegisterProcess(_content, ip);
+                    RegisterProcess(request.Content, ip);
                     break;
                     
                 case (int) Codes.Authorization:
-                    AuthProcess(_content, ip);
+                    AuthProcess(request.Content, ip);
                     break;
                     
                 case (int) Codes.NewMessage:
-                    NewMessageProcess(_content, ip);
+                    NewMessageProcess(request.Content, ip);
                     break;
                     
                 case (int)Codes.LogOut:
                     LogOutProcess(ip);
                     break;
                 case (int)Codes.GetConversations:
-                    GetConversationsProcess(_content, ip);
+                    GetConversationsProcess(request.Content, ip);
                     break;
             }
         }
@@ -106,21 +107,14 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик получения списка диалогов
         /// </summary>
-        private static void GetConversationsProcess(dynamic json, IPEndPoint ip)
+        private static void GetConversationsProcess(string json, IPEndPoint ip)
         {
             Person p;
             string errorMessage;
 
             try
             {
-                p = new Person
-                {
-                    ID = json.ID,
-                    Login = json.Login,
-                    Password = json.Password,
-                    Name = json.Name,
-                    SurName = json.SurName
-                };
+                p = JsonConvert.DeserializeObject<Person>(json);
             }
             catch
             {
@@ -146,6 +140,11 @@ namespace MessengerServer
             
         }
 
+        /// <summary>
+        /// Метод для получения списка диалогов пользователя
+        /// </summary>
+        /// <param name="person">Пользователь</param>
+        /// <returns></returns>
         private static List<Conversation> GetConversations(Person person)
         {
             List<Conversation> conversations = new List<Conversation>();
@@ -157,6 +156,7 @@ namespace MessengerServer
                     {
                         if(o.ID == member.ConversationID)
                         {
+                            o.PhotoSource = null;
                             conversations.Add(o);
                             return;
                         }
@@ -172,7 +172,6 @@ namespace MessengerServer
         /// </summary>
         private static void LogOutProcess(IPEndPoint ip)
         {
-            Clients.ToList().ForEach(o => Console.WriteLine(o.Key.ID + " : " + o.Value));
             Person person = Clients.ToList().Where(o => o.Value.Equals(ip)).FirstOrDefault().Key;
             if (person != null)
             {
@@ -187,7 +186,7 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик нового сообщения в чате
         /// </summary>
-        private static void NewMessageProcess(dynamic json, IPEndPoint ip)
+        private static void NewMessageProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
             Message message;
@@ -203,11 +202,7 @@ namespace MessengerServer
 
             try
             {
-                message = new Message
-                {
-                    ConversationID = json.ConversationID,
-                    Text = json.Text
-                };
+                message = JsonConvert.DeserializeObject<Message>(json);
             } catch
             {
                 errorMessage = "Не удалось распознать сообщение.";
@@ -293,7 +288,7 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик JSON регистрации
         /// </summary>
-        private static void RegisterProcess(dynamic json, IPEndPoint ip)
+        private static void RegisterProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
             bool result;
@@ -301,14 +296,7 @@ namespace MessengerServer
 
             try
             {
-                p = new Person
-                {
-                    ID = json.ID,
-                    Login = json.Login,
-                    Password = json.Password,
-                    Name = json.Name,
-                    SurName = json.SurName
-                };
+                p = JsonConvert.DeserializeObject<Person>(json);
             }catch
             {
                 errorMessage = "Не удалось создать пользователя. Убедитесь, что все поля заполнены верно.";
@@ -332,7 +320,7 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик JSON авторизации
         /// </summary>
-        private static void AuthProcess(dynamic json, IPEndPoint ip)
+        private static void AuthProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
             bool result;
@@ -340,11 +328,7 @@ namespace MessengerServer
 
             try
             {
-                person = new Person
-                {
-                    Login = json.Login,
-                    Password = json.Password
-                };
+                person = JsonConvert.DeserializeObject<Person>(json);
             }
             catch
             {
@@ -423,7 +407,7 @@ namespace MessengerServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
                 errorMessage = ex.Message;
                 return false;
             }
@@ -453,7 +437,7 @@ namespace MessengerServer
                 return true;
             }catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
                 errorMessage = ex.Message;
                 return false;
             }
@@ -479,7 +463,7 @@ namespace MessengerServer
                 });
             } catch(Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
             }
             finally
             {
@@ -503,7 +487,7 @@ namespace MessengerServer
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Error_Message(ex.Message);
             }
             finally
             {
