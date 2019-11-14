@@ -46,9 +46,9 @@ namespace MessengerWPF
             return _instant;
         }
         
-        public static void DisposeInstant()
+        public static async void DisposeInstant()
         {
-            _instant.LogOut();
+            await _instant.LogOut();
             _instant = null;
         }
 
@@ -57,14 +57,14 @@ namespace MessengerWPF
         /// </summary>
         /// <param name="jsonString"></param>
         /// <returns></returns>
-        private DefaultJSON GetResponse(string jsonString)
+        private async Task<DefaultJSON> GetResponse(string jsonString)
         {
             SendMessage(jsonString);
             dynamic jsonResponse;
-            IPEndPoint remoteIp = null; // адрес входящего подключения
             try
             {
-                byte[] data = Client.Receive(ref remoteIp); // получаем данные
+                UdpReceiveResult result = await Client.ReceiveAsync();
+                byte[] data = result.Buffer;
 
                 string response = Encoding.Unicode.GetString(data);
                 jsonResponse = JsonConvert.DeserializeObject(response);
@@ -84,12 +84,12 @@ namespace MessengerWPF
         /// <summary>
         /// Авторизация на сервере
         /// </summary>
-        public bool Authorize()
+        public async Task<bool> Authorize()
         {
             DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.Authorization, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            DefaultJSON response = GetResponse(jsonString);
+            DefaultJSON response = await GetResponse(jsonString);
             if(response.Code == (int)Codes.True)
             {
                 dynamic jsonResponse = JsonConvert.DeserializeObject(response.Content);
@@ -110,17 +110,13 @@ namespace MessengerWPF
         /// Выход с сервера
         /// </summary>
         /// <returns></returns>
-        public bool LogOut()
+        public async Task<bool> LogOut()
         {
             DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.LogOut, Content = "" };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            DefaultJSON response = GetResponse(jsonString);
-
-            if(response.Code == (int)Codes.False)
-            {
-                ErrorAlert(response.Content);
-            }
+            DefaultJSON response = await GetResponse(jsonString);
+            
             return response.Code == (int)Codes.True;
         }
 
@@ -128,12 +124,12 @@ namespace MessengerWPF
         /// Регистрация на сервере
         /// </summary>
         /// <returns></returns>
-        public bool Register()
+        public async Task<bool> Register()
         {
             DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.Registraion, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            DefaultJSON response = GetResponse(jsonString);
+            DefaultJSON response = await GetResponse(jsonString);
             return response.Code == (int)Codes.True;
         }
 
@@ -141,12 +137,12 @@ namespace MessengerWPF
         /// Отправляет сообщение на сервер
         /// </summary>
         /// <param name="message">Текст сообщения</param>
-        private void SendMessage(string message)
+        private async void SendMessage(string message)
         {
             try
             {
                 byte[] data = Encoding.Unicode.GetBytes(message);
-                Client.Send(data, data.Length, SERVERADDRESS, SERVERPORT); // отправка
+                await Client.SendAsync(data, data.Length, SERVERADDRESS, SERVERPORT); // отправка
             }
             catch (Exception ex)
             {
@@ -157,14 +153,14 @@ namespace MessengerWPF
         /// <summary>
         /// Прослушивание сообщений с сервера в бесконечном цикле
         /// </summary>
-        private void ReceiveMessages()
+        private async void ReceiveMessages()
         {
-            IPEndPoint remoteIp = null; // адрес входящего подключения
             try
             {
                 while (true)
                 {
-                    byte[] data = Client.Receive(ref remoteIp); // получаем данные
+                    UdpReceiveResult result = await Client.ReceiveAsync();
+                    byte[] data = result.Buffer; // получаем данные
                     string response = Encoding.Unicode.GetString(data);
                 }
             }

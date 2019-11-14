@@ -37,12 +37,12 @@ namespace MessengerWPF
 
         private static List<GradientStop> GenerateRandomGradient()
         {
+            Random rnd = new Random();
             List<GradientStop> gradients = new List<GradientStop>();
 
-            for(int i = 0; i < new Random().Next(3, 10); i++)
+            for(int i = 0; i < rnd.Next(3, 10); i++)
             {
-                // TODO:
-                gradients.Add(new GradientStop { Color =  })
+                gradients.Add(new GradientStop { Color = Color.FromRgb(Convert.ToByte(rnd.Next(0, 255)), Convert.ToByte(rnd.Next(0, 255)), Convert.ToByte(rnd.Next(0, 255))) });
             }
 
             return gradients;
@@ -65,7 +65,12 @@ namespace MessengerWPF
 
         private void OnlineStatusCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Code below
+            TextBlock tb = ((ComboBox)sender).SelectedItem as TextBlock;
+            if(tb != null)
+            {
+                GenerateRandomGradient();
+                Console.WriteLine(tb.Text);
+            }
         }
     }
 }

@@ -32,11 +32,11 @@ namespace MessengerWPF.View
             System.Diagnostics.Process.Start("https://github.com/ramil2321/MessengerOKEI");
         }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             Person person = new Person { Login = LoginTB.Text, Password = PasswordTB.Password };
             client = MessengerClient.GetInstant(person);
-            if (client.Authorize())
+            if (await client.Authorize())
             {
                 this.Hide();
                 MainWindow main = new MainWindow(this);

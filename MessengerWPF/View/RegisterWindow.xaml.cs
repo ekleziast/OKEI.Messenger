@@ -56,7 +56,7 @@ namespace MessengerWPF.View
             this.Close();
         }
 
-        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        private async void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             if (!CheckValues()) { 
                 ErrorAlert();
@@ -73,7 +73,7 @@ namespace MessengerWPF.View
             //person.Photo = new Photo { ID = person.ID, PhotoSource = selectedPhoto };
 
             client = MessengerClient.GetInstant(person);
-            bool result = client.Register();
+            bool result = await client.Register();
             if (result)
             {
                 MessageBox.Show("Вы успешно зарегистрировались!\nИспользуйте свои данные для входа.", "Добро пожаловать!", MessageBoxButton.OK, MessageBoxImage.None);
