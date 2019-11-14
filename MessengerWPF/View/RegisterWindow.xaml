@@ -84,7 +84,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="CancelButton" Content="Отмена" Template="{StaticResource StandartButton}" Grid.Column="0" Width="150" Click="CancelButton_Click"/>
-            <Button x:Name="RegisterButton" Content="Принять" Template="{StaticResource PrimaryButton}" Grid.Column="1" Width="150" Margin="10, 0, 30, 0" Click="RegisterButton_Click"/>
+            <Button x:Name="RegisterButton" IsDefault="True" Content="Принять" Template="{StaticResource PrimaryButton}" Grid.Column="1" Width="150" Margin="10, 0, 30, 0" Click="RegisterButton_Click"/>
         </Grid>
     </Grid>
 </Window>
