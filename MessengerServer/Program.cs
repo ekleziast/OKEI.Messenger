@@ -48,10 +48,6 @@ namespace MessengerServer
                     // Parsing
                     dynamic jsonMessage = JsonConvert.DeserializeObject(message);
                     ProcessMessage(jsonMessage, remoteIp);
-
-                    
-                    // Широковещательная рассылка сообщения
-                    BroadcastMessage(message, remoteIp);
                 }
             }
             catch (Exception ex)
@@ -75,7 +71,7 @@ namespace MessengerServer
             bool isValidQuery = Int32.TryParse((string)json.Code, out _code);
             if (!isValidQuery)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = "Неверный код запроса." }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = "Неверный код запроса." }), ip);
                 return;
             }
 
@@ -83,26 +79,41 @@ namespace MessengerServer
 
             switch (_code)
             {
-                // Регистрация
-                case 3:
+                case (int) Codes.Registraion:
                     RegisterProcess(_content, ip);
                     break;
-
-                // Авторизация
-                case 4:
+                    
+                case (int) Codes.Authorization:
                     AuthProcess(_content, ip);
                     break;
-
-                // Новое сообщение
-                case 5:
+                    
+                case (int) Codes.NewMessage:
                     NewMessageProcess(_content, ip);
                     break;
-
-                // Новый диалог
-                case 6:
+                    
+                case (int)Codes.LogOut:
+                    LogOutProcess(ip);
                     break;
             }
         }
+
+        /// <summary>
+        /// Обработчик выхода с системы пользователя
+        /// </summary>
+        private static void LogOutProcess(IPEndPoint ip)
+        {
+            Clients.ToList().ForEach(o => Console.WriteLine(o.Key.ID + " : " + o.Value));
+            Person person = Clients.ToList().Where(o => o.Value.Equals(ip)).FirstOrDefault().Key;
+            if (person != null)
+            {
+                Clients.Remove(person);
+            }
+            else
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Вы не были авторизованы." }), ip);
+            }
+        }
+
         /// <summary>
         /// Обработчик нового сообщения в чате
         /// </summary>
@@ -112,11 +123,11 @@ namespace MessengerServer
             Message message;
             Person sender;
 
-            sender = Clients.Where(o => o.Value == ip).FirstOrDefault().Key;
+            sender = Clients.Where(o => o.Value.Equals(ip)).FirstOrDefault().Key;
             if (sender == null)
             {
                 errorMessage = "Вы не авторизованы!";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -130,19 +141,19 @@ namespace MessengerServer
             } catch
             {
                 errorMessage = "Не удалось распознать сообщение.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
             bool result = NewMessage(sender, message, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = "Сообщение успешно отправлено." }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = "Сообщение успешно отправлено." }), ip);
             }
             else
             {
 
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
 
 
@@ -231,7 +242,7 @@ namespace MessengerServer
             }catch
             {
                 errorMessage = "Не удалось создать пользователя. Убедитесь, что все поля заполнены верно.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -240,11 +251,11 @@ namespace MessengerServer
             result = Register(p, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(p) }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(p) }), ip);
             }
             else
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
         }
 
@@ -268,7 +279,7 @@ namespace MessengerServer
             catch
             {
                 errorMessage = "Не удалось авторизоваться. Убедитесь, что все поля заполнены верно.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -276,12 +287,12 @@ namespace MessengerServer
             result = Auth(person, out validPerson, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 1, Content = JsonConvert.SerializeObject(validPerson) }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(validPerson) }), ip);
                 ConnectClient(validPerson, ip);
             }
             else
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = 0, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
         }
 
@@ -303,7 +314,7 @@ namespace MessengerServer
         {
             foreach(var o in Clients)
             {
-                if(o.Key.ID == person.ID && o.Value == ip) { return true; }
+                if(o.Key.ID == person.ID && o.Value.Equals(ip)) { return true; }
             }
             return false;
         }
