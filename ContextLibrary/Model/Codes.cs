@@ -49,5 +49,13 @@ namespace ContextLibrary
         /// Клиент разлогинился
         /// </summary>
         LogOut = 10,
+        /// <summary>
+        /// Клиент запросил список сообщений
+        /// </summary>
+        GetMessages = 11,
+        /// <summary>
+        /// Клиент запросил список диалогов
+        /// </summary>
+        GetConversations = 12,
     }
 }
