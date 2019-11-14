@@ -64,8 +64,15 @@
                         <TextBlock FontSize="16" Text="Фамилия" Margin="0, 0, 0, 5"/>
                         <TextBox x:Name="SurNameTB" Template="{StaticResource StandartTextBox}" Width="300" Margin="0, 0, 0, 10"/>
                         <TextBlock FontSize="16" HorizontalAlignment="Center" Text="Фотография" Margin="0, 0, 0, 5"/>
-                        <Image x:Name="SelectedPhoto" Visibility="Collapsed" Width="300" Margin="0, 10"/>
-                        <Button x:Name="SelectPhotoButton" Template="{StaticResource StandartButton}" Content="Выбрать фотографию" Width="200" Margin="0, 0, 0, 10" Click="SelectPhotoButton_Click"/>
+                        <Ellipse x:Name="PhotoContainer" Visibility="Collapsed" Width="200" Height="200">
+                            <Ellipse.Stroke>
+                                <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                            </Ellipse.Stroke>
+                            <Ellipse.Fill>
+                                <ImageBrush x:Name="SelectedPhoto" Stretch="UniformToFill"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <Button x:Name="SelectPhotoButton" Template="{StaticResource StandartButton}" Content="Выбрать фотографию" Width="200" Margin="0, 10, 0, 10" Click="SelectPhotoButton_Click"/>
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>

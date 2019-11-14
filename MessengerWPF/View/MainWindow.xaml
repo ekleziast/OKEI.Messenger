@@ -80,16 +80,14 @@
                                     </Grid.RowDefinitions>
                                     <!--#region <Profile> -->
                                     <DockPanel Grid.Row="0" Background="Transparent">
-                                        <Border>
-                                            <Ellipse Width="200" Height="200">
-                                                <Ellipse.Stroke>
-                                                    <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
-                                                </Ellipse.Stroke>
-                                                <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
-                                                </Ellipse.Fill>
-                                            </Ellipse>
-                                        </Border>
+                                        <Ellipse Width="200" Height="200">
+                                            <Ellipse.Stroke>
+                                                <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                                            </Ellipse.Stroke>
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
                                     </DockPanel>
                                     <!--#endregion-->
                                     <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="2"/>

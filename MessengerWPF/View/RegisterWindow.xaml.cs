@@ -1,5 +1,6 @@
 ﻿using ContextLibrary;
 using Leadtools.Codecs;
+using MessengerWPF.Util;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -45,8 +46,9 @@ namespace MessengerWPF.View
             if (fileDialog.ShowDialog() == true)
             {
                 selectedPhoto = File.ReadAllBytes(fileDialog.FileName);
-                SelectedPhoto.Source = ByteToImageConverter.ByteToImage(selectedPhoto);
-                SelectedPhoto.Visibility = Visibility.Visible;
+                SelectedPhoto.ImageSource = ByteToImageConverter.ByteToImage(selectedPhoto);
+                AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
+                PhotoContainer.Visibility = Visibility.Visible;
                 isPhotoSelected = true;
             }
         }

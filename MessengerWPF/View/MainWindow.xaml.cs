@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using MessengerWPF.Util;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -30,22 +31,8 @@ namespace MessengerWPF
         {
             InitializeComponent();
             this.parentWindow = parentWindow;
-
-            List<GradientStop> gradients = GenerateRandomGradient();
-            AvatarGradientBrush.GradientStops = new GradientStopCollection(gradients);
-        }
-
-        private static List<GradientStop> GenerateRandomGradient()
-        {
-            Random rnd = new Random();
-            List<GradientStop> gradients = new List<GradientStop>();
-
-            for(int i = 0; i < rnd.Next(3, 10); i++)
-            {
-                gradients.Add(new GradientStop { Color = Color.FromRgb(Convert.ToByte(rnd.Next(0, 255)), Convert.ToByte(rnd.Next(0, 255)), Convert.ToByte(rnd.Next(0, 255))) });
-            }
-
-            return gradients;
+            
+            AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
         }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -68,7 +55,7 @@ namespace MessengerWPF
             TextBlock tb = ((ComboBox)sender).SelectedItem as TextBlock;
             if(tb != null)
             {
-                GenerateRandomGradient();
+                AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
                 Console.WriteLine(tb.Text);
             }
         }
