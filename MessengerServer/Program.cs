@@ -18,7 +18,8 @@ namespace MessengerServer
         static Dictionary<Person, IPEndPoint> Clients = new Dictionary<Person, IPEndPoint>(); // Список клиентов
         static void Main(string[] args)
         {
-            Console.WriteLine("Сервер запущен. Ожидание подключения...");
+            Title_Console("ОКЭИ Сервер");
+            Message_Console("Сервер запущен. Ожидание подключения...");
             try
             {
                 Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
@@ -41,9 +42,11 @@ namespace MessengerServer
                 {
                     byte[] data = receiver.Receive(ref remoteIp); // получаем данные
                     string message = Encoding.Unicode.GetString(data);
-                    Console.WriteLine(
-                        $"({DateTime.Now.ToShortTimeString()}) {remoteIp.Address.ToString()}:{remoteIp.Port} - " +
-                        $"{message}"); // Logging
+
+                    // Logging
+                    Error_Message(
+                        $"({DateTime.Now.ToShortTimeString()}) {remoteIp.Address.ToString()}:{remoteIp.Port}");
+                    Message_Console(message + "\n");
 
                     // Parsing
                     dynamic jsonMessage = JsonConvert.DeserializeObject(message);
@@ -71,7 +74,7 @@ namespace MessengerServer
             bool isValidQuery = Int32.TryParse((string)json.Code, out _code);
             if (!isValidQuery)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = "Неверный код запроса." }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Неверный код запроса." }), ip);
                 return;
             }
 
@@ -94,7 +97,74 @@ namespace MessengerServer
                 case (int)Codes.LogOut:
                     LogOutProcess(ip);
                     break;
+                case (int)Codes.GetConversations:
+                    GetConversationsProcess(_content, ip);
+                    break;
             }
+        }
+
+        /// <summary>
+        /// Обработчик получения списка диалогов
+        /// </summary>
+        private static void GetConversationsProcess(dynamic json, IPEndPoint ip)
+        {
+            Person p;
+            string errorMessage;
+
+            try
+            {
+                p = new Person
+                {
+                    ID = json.ID,
+                    Login = json.Login,
+                    Password = json.Password,
+                    Name = json.Name,
+                    SurName = json.SurName
+                };
+            }
+            catch
+            {
+                errorMessage = "Не удалось создать пользователя. Убедитесь, что все поля заполнены верно.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
+                return;
+            }
+
+            if(!IsAuthorized(p, ip))
+            {
+                errorMessage = "Вы не авторизованы.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
+                return;
+            }
+
+            var conversations = GetConversations(p);
+            SendMessageToClient(JsonConvert.SerializeObject(
+                new DefaultJSON
+                {
+                    Code = (int)Codes.True,
+                    Content = JsonConvert.SerializeObject(conversations)
+                }), ip);
+            
+        }
+
+        private static List<Conversation> GetConversations(Person person)
+        {
+            List<Conversation> conversations = new List<Conversation>();
+            using(Context db = new Context())
+            {
+                var personMember = db.Members.Where(o => o.PersonID == person.ID).ToList();
+                db.Conversations.ToList().ForEach(o => {
+                    personMember.ForEach(member =>
+                    {
+                        if(o.ID == member.ConversationID)
+                        {
+                            conversations.Add(o);
+                            return;
+                        }
+                    });
+                });
+            }
+
+            return conversations;
         }
 
         /// <summary>
@@ -127,7 +197,7 @@ namespace MessengerServer
             if (sender == null)
             {
                 errorMessage = "Вы не авторизованы!";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -141,19 +211,19 @@ namespace MessengerServer
             } catch
             {
                 errorMessage = "Не удалось распознать сообщение.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
             bool result = NewMessage(sender, message, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = "Сообщение успешно отправлено." }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = "Сообщение успешно отправлено." }), ip);
             }
             else
             {
 
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
 
 
@@ -182,7 +252,7 @@ namespace MessengerServer
             }
 
             bool result = BroadcastMessage(
-                new DefaultResponse {
+                new DefaultJSON {
                     Code = 6,
                     Content = JsonConvert.SerializeObject(message)
                 }, person, _receivers, out errorMessage);
@@ -193,7 +263,7 @@ namespace MessengerServer
         /// <summary>
         /// Отправляет сообщение всем получателям, кроме отправителя
         /// </summary>
-        private static bool BroadcastMessage(DefaultResponse response, Person sender, List<Person> receivers, out string errorMessage)
+        private static bool BroadcastMessage(DefaultJSON response, Person sender, List<Person> receivers, out string errorMessage)
         {
             errorMessage = "";
             try
@@ -242,7 +312,7 @@ namespace MessengerServer
             }catch
             {
                 errorMessage = "Не удалось создать пользователя. Убедитесь, что все поля заполнены верно.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -251,11 +321,11 @@ namespace MessengerServer
             result = Register(p, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(p) }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(p) }), ip);
             }
             else
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
         }
 
@@ -279,7 +349,7 @@ namespace MessengerServer
             catch
             {
                 errorMessage = "Не удалось авторизоваться. Убедитесь, что все поля заполнены верно.";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
@@ -287,12 +357,12 @@ namespace MessengerServer
             result = Auth(person, out validPerson, out errorMessage);
             if (result)
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(validPerson) }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(validPerson) }), ip);
                 ConnectClient(validPerson, ip);
             }
             else
             {
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultResponse { Code = (int)Codes.False, Content = errorMessage }), ip);
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
         }
 
@@ -441,10 +511,41 @@ namespace MessengerServer
             }
         }
 
-        private class DefaultResponse
+        private class DefaultJSON
         {
             public int Code { get; set; }
             public string Content { get; set; }
         }
+
+
+        /////////////////Краска, Титулка, Паузы////////////////////////////
+        private static void Title_Console(string title)
+        {
+            Console.BackgroundColor = ConsoleColor.DarkCyan;
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Title = title;
+        }
+
+        private static void Pause()
+        {
+            Console.ReadKey(true);
+        }
+
+
+        private static void Message_Console(string msg)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(msg);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        private static void Error_Message(string msg)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(msg);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        ////////////////////////////////////////////////////////////////////
     }
 }
