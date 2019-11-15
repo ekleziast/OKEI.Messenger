@@ -35,14 +35,16 @@ namespace MessengerWPF.View
             }
         }
         private List<Conversation> _conversations { get; set; }
+        Frame NavigationFrame;
 
-        public MainPage()
+        public MainPage(Frame navigationFrame)
         {
             InitializeComponent();
-            
+
             DataContext = new { ThisContext = this };
 
             AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
+            NavigationFrame = navigationFrame;
         }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -61,9 +63,7 @@ namespace MessengerWPF.View
 
         private async void ChatsListView_Initialized(object sender, EventArgs e)
         {
-            _conversations = new List<Conversation>();
-            _conversations = await Client.GetConversations();
-            ChatsListView.ItemsSource = _conversations;
+            ChatsListView.ItemsSource = await Client.GetConversations();
         }
         
         private void ChatsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -71,8 +71,10 @@ namespace MessengerWPF.View
             Conversation selectedConversation = ((ListView)sender).SelectedItem as Conversation;
             if (selectedConversation != null)
             {
-
+                ChatPage chatPage = new ChatPage(NavigationFrame, selectedConversation);
+                NavigationFrame.Navigate(chatPage);
             }
+            ((ListView)sender).UnselectAll();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

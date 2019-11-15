@@ -14,5 +14,18 @@
         </Style>
     </Window.Resources>
     <Grid>
+        <TabControl BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
+            <TabItem Template="{StaticResource NavigationTabItem}" IsEnabled="False">
+                <TabItem.Header>
+                    <Image Source="/src/img/hanime_logo.png"/>
+                </TabItem.Header>
+            </TabItem>
+            <TabItem Template="{StaticResource NavigationTabItem}">
+                <TabItem.Header>Чат</TabItem.Header>
+                <TabItem.Content>
+                    <Frame x:Name="MainFrame"/>
+                </TabItem.Content>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

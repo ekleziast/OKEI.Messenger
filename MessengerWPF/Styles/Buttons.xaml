@@ -80,4 +80,10 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+    
+    <ControlTemplate TargetType="Button" x:Key="ImageButton">
+        <Border x:Name="ButtonBorder" Height="{TemplateBinding Height}" Width="{TemplateBinding Height}" BorderThickness="0">
+            <ContentControl HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding Content}" FontFamily="{DynamicResource RobotoRegular}" FontSize="14"/>
+        </Border>
+    </ControlTemplate>
 </ResourceDictionary>

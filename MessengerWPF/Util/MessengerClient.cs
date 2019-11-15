@@ -52,6 +52,25 @@ namespace MessengerWPF
             _instant = null;
         }
 
+        public async Task<List<Message>> GetMessages(Conversation conversation)
+        {
+            List<Message> messages = new List<Message>();
+
+            DefaultJSON jSON = new DefaultJSON { Code = (int)Codes.GetMessages, Content = JsonConvert.SerializeObject(new { Person = Person, Conversation = conversation }) };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            try
+            {
+                DefaultJSON response = await GetResponse(jsonString);
+                messages = JsonConvert.DeserializeObject<List<Message>>(response.Content);
+            }catch(Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+
+            return messages;
+        }
+
         /// <summary>
         /// Получение списка диалогов
         /// </summary>

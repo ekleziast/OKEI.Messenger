@@ -17,35 +17,57 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="200"/>
         </Grid.ColumnDefinitions>
+        <DockPanel Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+            <Button x:Name="BackButton" Template="{StaticResource ImageButton}" Height="60" BorderBrush="Transparent" Grid.Column="1" Margin="10" Click="BackButton_Click">
+                <Button.Content>
+                    <Image Source="/src/img/BackButton.png" Focusable="False"/>
+                </Button.Content>
+            </Button>
+        </DockPanel>
         <DockPanel Grid.Column="1">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="46"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="46"/>
                 </Grid.RowDefinitions>
-                <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="0"/>
-                <ScrollViewer Panel.ZIndex="1" Grid.Row="0" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                    <ListView x:Name="ChatMessagesListView" Background="Transparent" ItemsSource="{Binding }" BorderThickness="0">
+                <DockPanel Grid.Row="0" Background="GhostWhite">
+                    <TextBlock x:Name="TitleConversation" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource RobotoMedium}" FontSize="20"/>
+                </DockPanel>
+                <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
+                <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
+                    <ListView x:Name="ChatMessagesListView" Background="Transparent" BorderThickness="0" Initialized="ChatMessagesListView_Initialized">
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Height="46">
-                                    <TextBlock FontSize="14">
-                                        <TextBlock.Text>
-                                            <MultiBinding StringFormat="{}{0} {1} {2}: {3}">
-                                                <Binding Path="FirstName"/>
-                                                <Binding Path="MiddleName"/>
-                                                <Binding Path="LastName"/>
-                                                <Binding Path="Message" Converter="{StaticResource MessageConverterXAML}"/>
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                    <TextBlock Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" FontSize="12" FontWeight="Light"/>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="50" Height="50" Margin="0, 15, 0, 0">
+                                            <Ellipse.Stroke>
+                                                <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                                            </Ellipse.Stroke>
+                                            <Ellipse.Fill>
+                                                <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                            </Ellipse.Fill>
+                                        </Ellipse>
+                                        <StackPanel Margin="15, 0, 0, 0">
+                                            <TextBlock FontSize="18" FontFamily="{StaticResource RobotoMedium}" Foreground="Blue">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} {1}">
+                                                        <Binding Path="Person.Name"/>
+                                                        <Binding Path="Person.SurName"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap" Width="500"/>
+                                            <TextBlock Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" FontSize="12" FontWeight="Light"/>
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
                 </ScrollViewer>
-                <DockPanel Grid.Row="1" Background="White">
+                <DockPanel Grid.Row="2" Background="White">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

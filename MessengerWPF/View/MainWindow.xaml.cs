@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using ContextLibrary;
+using System.Windows.Navigation;
 
 namespace MessengerWPF
 {
@@ -13,17 +14,14 @@ namespace MessengerWPF
         double res = System.Windows.SystemParameters.PrimaryScreenWidth;
         private List<Conversation> _conversations { get; set; }
         private AuthWindow parentWindow;
-
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        
         public MainWindow(AuthWindow parentWindow)
         {
             this.MinWidth = res / 2;
             InitializeComponent();
             this.parentWindow = parentWindow;
-            this.Content = new MainPage();
+            MainFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
+            MainFrame.Navigate(new MainPage(MainFrame));
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
