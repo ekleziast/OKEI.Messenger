@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MessengerWPF.View"
         mc:Ignorable="d"
         Title="ОКЭИ Чат" Height="800" Width="1200"
-        ResizeMode="NoResize" Closing="Window_Closing">
+        MinHeight="400" Closing="Window_Closing">
     <Window.Resources>
         <Style TargetType="{x:Type TextBlock}">
             <Setter Property="FontFamily" Value="{StaticResource RobotoRegular}"/>
@@ -14,7 +14,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <TabControl BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
+        <TabControl x:Name="NavigationTabControl" BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
             <TabItem Template="{StaticResource NavigationTabItem}" IsEnabled="False">
                 <TabItem.Header>
                     <Image Source="/src/img/hanime_logo.png"/>
@@ -48,7 +48,7 @@
                                     <!--#region <ChatList> -->
                                     <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
                                     <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                                        <ListView x:Name="ChatsListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized">
+                                        <ListView x:Name="ChatsListView" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized" SelectionChanged="ChatsListView_SelectionChanged">
                                             <ListView.ItemTemplate>
                                                 <DataTemplate>
                                                     <DockPanel Height="70">
@@ -74,9 +74,9 @@
                             <DockPanel Margin="20">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="250"/>
                                         <RowDefinition Height="20"/>
-                                        <RowDefinition Height="400"/>
+                                        <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <!--#region <Profile> -->
                                     <DockPanel Grid.Row="0" Background="Transparent">
@@ -109,30 +109,6 @@
                             </DockPanel>
                         </DockPanel>
                         <!--#endregion-->
-                    </Grid>
-                </TabItem.Content>
-            </TabItem>
-            <TabItem Template="{StaticResource NavigationTabItem}">
-                <TabItem.Header>Header</TabItem.Header>
-                <TabItem.Content>
-                    <Grid Margin="-5, -2">
-                        <Grid.Background>
-                            <ImageBrush ImageSource="/src/img/triangle_pattern.png" Opacity="0.2"/>
-                        </Grid.Background>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="200"/>
-                        </Grid.ColumnDefinitions>
-                        <DockPanel Grid.Column="1">
-                            <DockPanel Margin="20">
-                                <Grid>
-                                    <DockPanel>
-                                        
-                                    </DockPanel>
-                                </Grid>
-                            </DockPanel>
-                        </DockPanel>
                     </Grid>
                 </TabItem.Content>
             </TabItem>

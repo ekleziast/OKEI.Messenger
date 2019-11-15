@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ContextLibrary;
 
 namespace MessengerWPF
 {
@@ -24,6 +25,7 @@ namespace MessengerWPF
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        double res = System.Windows.SystemParameters.PrimaryScreenWidth;
         private MessengerClient Client = MessengerClient.GetInstant();
         public string Nickname
         {
@@ -33,6 +35,7 @@ namespace MessengerWPF
                 OnPropertyChanged("Nickname");
             }
         }
+        private List<Conversation> _conversations { get; set; }
         private AuthWindow parentWindow;
 
         public MainWindow()
@@ -41,6 +44,7 @@ namespace MessengerWPF
         }
         public MainWindow(AuthWindow parentWindow)
         {
+            this.MinWidth = res / 2;
             InitializeComponent();
             this.parentWindow = parentWindow;
 
@@ -75,14 +79,24 @@ namespace MessengerWPF
 
         private async void ChatsListView_Initialized(object sender, EventArgs e)
         {
-            var conversations = await Client.GetConversations();
-            conversations.ForEach(o => ChatsListView.Items.Add(o));
+            _conversations = new List<Conversation>();
+            _conversations = await Client.GetConversations();
+            ChatsListView.ItemsSource = _conversations;
         }
         
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        }
+
+        private void ChatsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Conversation selectedConversation = ((ListView)sender).SelectedItem as Conversation;
+            if(selectedConversation != null)
+            {
+                
+            }
         }
     }
 }

@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessengerWPF.View"
         mc:Ignorable="d"
-        Title="ОКЭИ Чат" Height="450" Width="800">
+        Title="ОКЭИ Чат" Height="450" Width="800"
+        ResizeMode="CanMinimize">
     <Window.Resources>
         <Style x:Key="Link" TargetType="Button">
             <Setter Property="VerticalAlignment" Value="Center"/>
