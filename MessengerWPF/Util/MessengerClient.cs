@@ -52,6 +52,10 @@ namespace MessengerWPF
             _instant = null;
         }
 
+        /// <summary>
+        /// Получение списка диалогов
+        /// </summary>
+        /// <returns>Список диалогов</returns>
         public async Task<List<Conversation>> GetConversations()
         {
             var conversations = new List<Conversation>();
@@ -125,7 +129,7 @@ namespace MessengerWPF
         /// <returns></returns>
         public async Task<bool> LogOut()
         {
-            DefaultJSON jSON = new DefaultJSON { Code = (int) Codes.LogOut, Content = "" };
+            DefaultJSON jSON = new DefaultJSON { Code = (int)Codes.LogOut, Content = JsonConvert.SerializeObject(Person) };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
             DefaultJSON response = await GetResponse(jsonString);
