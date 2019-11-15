@@ -20,6 +20,19 @@ namespace MessengerServer
         static void Main(string[] args)
         {
             Title_Console("ОКЭИ Сервер");
+            /*
+            using (Context db = new Context())
+            {
+                Guid personId = db.Persons.Where(o => o.Login == "admin").FirstOrDefault().ID;
+                Message message = new Message {
+                    PersonID = personId,
+                    ConversationID = db.Conversations.Where(o => o.ID == db.Members.Where(k => k.PersonID == personId).FirstOrDefault().ConversationID).FirstOrDefault().ID,
+                    DateTime = DateTime.Now, Text = "Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"
+                };
+                db.Messages.Add(message);
+                db.SaveChanges();
+            }
+            */
             Message_Console("Сервер запущен. Ожидание подключения...");
             try
             {
@@ -104,6 +117,9 @@ namespace MessengerServer
                 case (int) Codes.GetMessages:
                     GetMessagesProcess(request.Content, ip);
                     break;
+                default:
+                    SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Код ("+ request.Code +") не найден." }), ip);
+                    break;
             }
         }
 
@@ -120,8 +136,8 @@ namespace MessengerServer
             try
             {
                 dynamic content = JsonConvert.DeserializeObject(json);
-                person = JsonConvert.DeserializeObject<Person>(content.Person);
-                conversation = JsonConvert.DeserializeObject<Conversation>(content.Conversation);
+                person = JsonConvert.DeserializeObject<Person>(JsonConvert.SerializeObject(content.Person));
+                conversation = JsonConvert.DeserializeObject<Conversation>(JsonConvert.SerializeObject(content.Conversation));
             }
             catch
             {
@@ -170,7 +186,8 @@ namespace MessengerServer
 
             using (Context db = new Context())
             {
-                messages = db.Messages.Where(o => o.PersonID == person.ID && o.ConversationID == conversation.ID).ToList();
+                messages = db.Messages.Include("Person").Where(o => o.ConversationID == conversation.ID).ToList();
+                messages.ForEach(o => Console.WriteLine(o.ConversationID + " " + o.PersonID + ": " + " " + o.Text));
             }
 
             return messages;
@@ -293,8 +310,8 @@ namespace MessengerServer
             try
             {
                 dynamic content = JsonConvert.DeserializeObject(json);
-                person = JsonConvert.DeserializeObject<Message>(content.Person);
-                message = JsonConvert.DeserializeObject<Message>(content.Message);
+                person = JsonConvert.DeserializeObject<Message>(JsonConvert.SerializeObject(content.Person));
+                message = JsonConvert.DeserializeObject<Message>(JsonConvert.SerializeObject(content.Message));
             } catch
             {
                 errorMessage = "Не удалось распознать запрос.";
