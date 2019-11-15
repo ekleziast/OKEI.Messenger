@@ -57,5 +57,13 @@ namespace ContextLibrary
         /// Клиент запросил список диалогов
         /// </summary>
         GetConversations = 12,
+        /// <summary>
+        /// Клиент запросил список пользователей
+        /// </summary>
+        GetUsers = 13,
+        /// <summary>
+        /// Клиент установил новый статус
+        /// </summary>
+        SetStatus = 14,
     }
 }

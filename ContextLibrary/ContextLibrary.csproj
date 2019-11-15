@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6BC7769D-8DC0-462A-AF9E-040DA4500CE0}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ContextLibrary</RootNamespace>
     <AssemblyName>ContextLibrary</AssemblyName>
@@ -79,6 +79,7 @@
     <Compile Include="Model\Person.cs" />
     <Compile Include="Model\Photo.cs" />
     <Compile Include="Model\Status.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
