@@ -117,10 +117,100 @@ namespace MessengerServer
                 case (int) Codes.GetMessages:
                     GetMessagesProcess(request.Content, ip);
                     break;
+                case (int)Codes.GetUsers:
+                    GetUsersProcess(ip);
+                    break;
+                case (int)Codes.SetStatus:
+                    SetStatusProcess(request.Content, ip);
+                    break;
                 default:
                     SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Код ("+ request.Code +") не найден." }), ip);
                     break;
             }
+        }
+        
+        /// <summary>
+        /// Обработчик нового статуса
+        /// </summary>
+        /// <param name="json">Content: Person, Status</param>
+        private static void SetStatusProcess(string json, IPEndPoint ip)
+        {
+            Person person;
+            Status status;
+            string errorMessage;
+
+            try
+            {
+                dynamic content = JsonConvert.DeserializeObject(json);
+                person = JsonConvert.DeserializeObject<Person>(JsonConvert.SerializeObject(content.Person));
+                status = JsonConvert.DeserializeObject<Status>(JsonConvert.SerializeObject(content.Status));
+                Console.WriteLine(person.ID);
+                Console.WriteLine(status.Name);
+            }
+            catch(Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = ex.Message }), ip);
+                return;
+            }
+            try
+            {
+                SetStatus(person, status, ip);
+            }
+            catch(Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = ex.Message }), ip);
+                return;
+            }
+            BroadcastMessage(
+                new DefaultJSON { 
+                    Code = (int)Codes.SetStatus, 
+                    Content = JsonConvert.SerializeObject(person) 
+                }, 
+                    person, Clients.Keys.ToList(), out errorMessage);
+        }
+        
+        /// <summary>
+        /// Устанавливает новый статус для пользователя
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="status"></param>
+        private static void SetStatus(Person person, Status status, IPEndPoint ip)
+        {
+            using (Context db = new Context())
+            {
+                db.Persons.Where(o => o.ID == person.ID).FirstOrDefault().StatusID = db.Statuses.Where(o => o.Name == status.Name).FirstOrDefault().ID;
+                db.SaveChanges();
+            }
+            UpdateInfo(person, ip);
+        }
+
+        /// <summary>
+        /// Обработчик запроса на список пользователей
+        /// </summary>
+        private static void GetUsersProcess(IPEndPoint ip)
+        {
+            try
+            {
+                List<Person> people = GetPeople();
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(people) }), ip);
+            }
+            catch(Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = ex.Message }), ip);
+            }
+        }
+        /// <summary>
+        /// Получение списка пользователей без логина и пароля
+        /// </summary>
+        private static List<Person> GetPeople()
+        {
+            List<Person> people = new List<Person>();
+            using(Context db = new Context())
+            {
+                people = db.Persons.Include("Status").ToList();
+            }
+            people.ForEach(o => { o.Login = null; o.Password = null; o.Photo = null; });
+            return people;
         }
 
         /// <summary>
@@ -289,12 +379,30 @@ namespace MessengerServer
             Person person = Clients.ToList().Where(o => o.Value.Equals(ip) && o.Key.ID.Equals(sender.ID)).FirstOrDefault().Key;
             if (person != null)
             {
+                string errorMessage;
                 Clients.Remove(person);
+                SetStatus(person, new Status { Name = "Не в сети" }, ip);
+                BroadcastMessage(
+                    new DefaultJSON
+                    {
+                        Code = (int)Codes.SetStatus,
+                        Content = JsonConvert.SerializeObject(person)
+                    },
+                        person, Clients.Keys.ToList(), out errorMessage);
             }
             else
             {
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Вы не были авторизованы." }), ip);
             }
+        }
+
+        /// <summary>
+        /// Обновляет информацию о подключенном клиенте
+        /// </summary>
+        private static void UpdateInfo(Person person, IPEndPoint ip)
+        {
+            Clients.Remove(Clients.Where(o => o.Key.ID == person.ID).FirstOrDefault().Key);
+            Clients.Add(person, ip);
         }
 
         /// <summary>
@@ -465,7 +573,19 @@ namespace MessengerServer
         /// <param name="ip">IP адрес клиента</param>
         private static void ConnectClient(Person person, IPEndPoint ip)
         {
-            if (!IsAuthorized(person, ip)) { Clients.Add(person, ip); }
+            string errorMessage;
+            if (!IsAuthorized(person, ip)) { 
+                Clients.Add(person, ip);
+
+                SetStatus(person, new Status { Name = "В сети" }, ip);
+                BroadcastMessage(
+                    new DefaultJSON
+                    {
+                        Code = (int)Codes.SetStatus,
+                        Content = JsonConvert.SerializeObject(person)
+                    },
+                        person, Clients.Keys.ToList(), out errorMessage);
+            }
         }
 
         /// <summary>
