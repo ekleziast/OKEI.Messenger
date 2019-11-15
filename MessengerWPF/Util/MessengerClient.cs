@@ -52,6 +52,54 @@ namespace MessengerWPF
             _instant = null;
         }
 
+        public async void SetStatus(Status status)
+        {
+            if (status.Name == "Невидимка")
+            {
+                status.Name = "Не в сети";
+            }
+            DefaultJSON jSON = new DefaultJSON { Code = (int)Codes.SetStatus, Content = JsonConvert.SerializeObject(new { Person = Person, Status = status }) };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            try
+            {
+                SendMessage(jsonString);
+            }
+            catch (Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Получение списка пользователей
+        /// </summary>
+        public async Task<List<Person>> GetPeople()
+        {
+            List<Person> people = new List<Person>();
+
+            DefaultJSON jSON = new DefaultJSON { Code = (int)Codes.GetUsers, Content = "" };
+            string jsonString = JsonConvert.SerializeObject(jSON);
+
+            try
+            {
+                DefaultJSON response = await GetResponse(jsonString);
+                people = JsonConvert.DeserializeObject<List<Person>>(response.Content);
+            }catch(Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+
+            people.Remove(people.Where(o => o.ID == Person.ID).FirstOrDefault());
+
+            return people;
+        }
+
+        /// <summary>
+        /// Получение списка сообщений диалога
+        /// </summary>
+        /// <param name="conversation">Диалог</param>
+        /// <returns>Список сообщений</returns>
         public async Task<List<Message>> GetMessages(Conversation conversation)
         {
             List<Message> messages = new List<Message>();

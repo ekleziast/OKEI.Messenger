@@ -58,6 +58,7 @@ namespace MessengerWPF.View
             if (tb != null)
             {
                 AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
+                Client.SetStatus(new Status { Name = tb.Text });
             }
         }
 
@@ -75,6 +76,11 @@ namespace MessengerWPF.View
                 NavigationFrame.Navigate(chatPage);
             }
             ((ListView)sender).UnselectAll();
+        }
+
+        private async void OnlineUsersListView_Initialized(object sender, EventArgs e)
+        {
+            OnlineUsersListView.ItemsSource = await Client.GetPeople();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
