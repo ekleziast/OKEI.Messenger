@@ -66,6 +66,10 @@
     <Compile Include="Migrations\201911120601418_TextMessage.Designer.cs">
       <DependentUpon>201911120601418_TextMessage.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201911150749426_DateTime_Message.cs" />
+    <Compile Include="Migrations\201911150749426_DateTime_Message.Designer.cs">
+      <DependentUpon>201911150749426_DateTime_Message.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\Codes.cs" />
     <Compile Include="Model\Conversation.cs" />
@@ -90,6 +94,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201911120601418_TextMessage.resx">
       <DependentUpon>201911120601418_TextMessage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201911150749426_DateTime_Message.resx">
+      <DependentUpon>201911150749426_DateTime_Message.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

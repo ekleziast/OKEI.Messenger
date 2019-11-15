@@ -23,6 +23,7 @@ namespace ContextLibrary
         public Guid PersonID { get; set; }
         public Person Person { get; set; }
 
+        public DateTime DateTime { get; set; }
         public string Text { get; set; }
     }
 }
