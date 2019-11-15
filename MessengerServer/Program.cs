@@ -95,18 +95,91 @@ namespace MessengerServer
                     NewMessageProcess(request.Content, ip);
                     break;
                     
-                case (int)Codes.LogOut:
-                    LogOutProcess(ip);
+                case (int) Codes.LogOut:
+                    LogOutProcess(request.Content, ip);
                     break;
-                case (int)Codes.GetConversations:
+                case (int) Codes.GetConversations:
                     GetConversationsProcess(request.Content, ip);
+                    break;
+                case (int) Codes.GetMessages:
+                    GetMessagesProcess(request.Content, ip);
                     break;
             }
         }
 
         /// <summary>
+        /// Обработчик получения списка сообщений
+        /// </summary>
+        /// <param name="json">Content: Person, Conversation</param>
+        private static void GetMessagesProcess(string json, IPEndPoint ip)
+        {
+            Person person;
+            Conversation conversation;
+            string errorMessage;
+
+            try
+            {
+                dynamic content = JsonConvert.DeserializeObject(json);
+                person = JsonConvert.DeserializeObject<Person>(content.Person);
+                conversation = JsonConvert.DeserializeObject<Conversation>(content.Conversation);
+            }
+            catch
+            {
+                errorMessage = "Убедитесь, что все поля заполнены верно.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
+                return;
+            }
+
+            if (!IsAuthorized(person, ip))
+            {
+                errorMessage = "Вы не авторизованы.";
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
+                return;
+            }
+
+            List<Message> messages;
+            try
+            {
+                messages = GetMessages(person, conversation);
+            }
+            catch (Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(
+                    new DefaultJSON
+                    {
+                        Code = (int)Codes.False,
+                        Content = JsonConvert.SerializeObject(ex.Message)
+                    }), ip);
+                return;
+            }
+
+            SendMessageToClient(JsonConvert.SerializeObject(
+                new DefaultJSON
+                {
+                    Code = (int)Codes.True,
+                    Content = JsonConvert.SerializeObject(messages)
+                }), ip);
+        }
+
+        /// <summary>
+        /// Метод для получения списка сообщений диалога
+        /// </summary>
+        private static List<Message> GetMessages(Person person, Conversation conversation)
+        {
+            List<Message> messages = new List<Message>();
+
+            using (Context db = new Context())
+            {
+                messages = db.Messages.Where(o => o.PersonID == person.ID && o.ConversationID == conversation.ID).ToList();
+            }
+
+            return messages;
+        }
+
+        /// <summary>
         /// Обработчик получения списка диалогов
         /// </summary>
+        /// <param name="json">Content: Person</param>
         private static void GetConversationsProcess(string json, IPEndPoint ip)
         {
             Person p;
@@ -130,7 +203,20 @@ namespace MessengerServer
                 return;
             }
 
-            var conversations = GetConversations(p);
+            List<Conversation> conversations;
+            try
+            {
+                conversations = GetConversations(p);
+            }catch(Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(
+                new DefaultJSON
+                {
+                    Code = (int)Codes.False,
+                    Content = ex.Message
+                }), ip);
+                return;
+            }
             SendMessageToClient(JsonConvert.SerializeObject(
                 new DefaultJSON
                 {
@@ -168,11 +254,22 @@ namespace MessengerServer
         }
 
         /// <summary>
-        /// Обработчик выхода с системы пользователя
+        /// Обработчик выхода пользователя с системы 
         /// </summary>
-        private static void LogOutProcess(IPEndPoint ip)
+        /// <param name="json">Content: Person</param>
+        private static void LogOutProcess(string json, IPEndPoint ip)
         {
-            Person person = Clients.ToList().Where(o => o.Value.Equals(ip)).FirstOrDefault().Key;
+            Person sender;
+            try
+            {
+                sender = JsonConvert.DeserializeObject<Person>(json);
+            }catch(Exception ex)
+            {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = ex.Message }), ip);
+                return;
+            }
+
+            Person person = Clients.ToList().Where(o => o.Value.Equals(ip) && o.Key.ID.Equals(sender.ID)).FirstOrDefault().Key;
             if (person != null)
             {
                 Clients.Remove(person);
@@ -186,42 +283,34 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик нового сообщения в чате
         /// </summary>
+        /// <param name="json">Content: Person, Message</param>
         private static void NewMessageProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
             Message message;
-            Person sender;
-
-            sender = Clients.Where(o => o.Value.Equals(ip)).FirstOrDefault().Key;
-            if (sender == null)
-            {
-                errorMessage = "Вы не авторизованы!";
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
-                return;
-            }
+            Person person;
 
             try
             {
-                message = JsonConvert.DeserializeObject<Message>(json);
+                dynamic content = JsonConvert.DeserializeObject(json);
+                person = JsonConvert.DeserializeObject<Message>(content.Person);
+                message = JsonConvert.DeserializeObject<Message>(content.Message);
             } catch
             {
-                errorMessage = "Не удалось распознать сообщение.";
+                errorMessage = "Не удалось распознать запрос.";
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
                 return;
             }
 
-            bool result = NewMessage(sender, message, out errorMessage);
+            bool result = NewMessage(person, message, out errorMessage);
             if (result)
             {
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = "Сообщение успешно отправлено." }), ip);
             }
             else
             {
-
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = errorMessage }), ip);
             }
-
-
         }
 
         /// <summary>
@@ -288,6 +377,7 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик JSON регистрации
         /// </summary>
+        /// <param name="json">Content: Person</param>
         private static void RegisterProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
@@ -320,6 +410,7 @@ namespace MessengerServer
         /// <summary>
         /// Обработчик JSON авторизации
         /// </summary>
+        /// <param name="json">Content: Person</param>
         private static void AuthProcess(string json, IPEndPoint ip)
         {
             string errorMessage;
@@ -494,13 +585,7 @@ namespace MessengerServer
                 sender.Close();
             }
         }
-
-        private class DefaultJSON
-        {
-            public int Code { get; set; }
-            public string Content { get; set; }
-        }
-
+        
 
         /////////////////Краска, Титулка, Паузы////////////////////////////
         private static void Title_Console(string title)
