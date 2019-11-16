@@ -33,7 +33,7 @@
                     <!--#region <ChatList> -->
                     <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
                     <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                        <ListView x:Name="ChatsListView" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized" SelectionChanged="ChatsListView_SelectionChanged">
+                        <ListView x:Name="ChatsListView" ItemsSource="{Binding ThisContext.Conversations}" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized" SelectionChanged="ChatsListView_SelectionChanged">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel Height="70">
@@ -90,7 +90,7 @@
                                     <TextBlock Text="Невидимка" Margin="0" Foreground="Gray"/>
                                 </ComboBox>
                                 <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-                                    <ListView x:Name="OnlineUsersListView" Background="Transparent" BorderThickness="1, 0, 1, 0" Margin="0, 10" Initialized="OnlineUsersListView_Initialized">
+                                    <ListView x:Name="UsersListView" ItemsSource="{Binding ThisContext.UsersList}" Background="Transparent" BorderThickness="1, 0, 1, 0" Margin="0, 10" Initialized="UsersListView_Initialized" SelectionChanged="UsersListView_SelectionChanged">
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <Border BorderThickness="0, 0, 0, 1" BorderBrush="LightGray">

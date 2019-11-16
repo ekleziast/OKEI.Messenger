@@ -1,4 +1,5 @@
 ﻿using ContextLibrary;
+using MessengerWPF.View;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace MessengerWPF
 {
@@ -52,6 +54,25 @@ namespace MessengerWPF
             _instant = null;
         }
 
+        public async void NewConversation(Conversation conversation, List<Member> members)
+        {
+            DefaultJSON json = new DefaultJSON
+            {
+                Code = (int)Codes.NewConversation,
+                Content = JsonConvert.SerializeObject( new { Conversation = conversation, Members = members } )
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+
+            try
+            {
+                SendMessageAsync(jsonString);
+            }
+            catch (Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+        }
+
         public async void SetStatus(Status status)
         {
             if (status.Name == "Невидимка")
@@ -60,10 +81,9 @@ namespace MessengerWPF
             }
             DefaultJSON jSON = new DefaultJSON { 
                 Code = (int)Codes.NewStatus, 
-                Content = await Task.Factory.StartNew(
-                    () => JsonConvert.SerializeObject(new { Person = Person, Status = status })) 
+                Content = JsonConvert.SerializeObject(new { Person = Person, Status = status }) 
             };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             try
             {
@@ -83,12 +103,12 @@ namespace MessengerWPF
             List<Person> people = new List<Person>();
 
             DefaultJSON jSON = new DefaultJSON { Code = (int)Codes.GetUsers, Content = "" };
-            string jsonString = await Task.Factory.StartNew(()=> JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             try
             {
                 DefaultJSON response = await GetResponse(jsonString);
-                people = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<List<Person>>(response.Content));
+                people = JsonConvert.DeserializeObject<List<Person>>(response.Content);
             }catch(Exception ex)
             {
                 ErrorAlert(ex.Message);
@@ -110,15 +130,14 @@ namespace MessengerWPF
 
             DefaultJSON jSON = new DefaultJSON { 
                 Code = (int)Codes.GetMessages, 
-                Content = await Task.Factory.StartNew(
-                    () => JsonConvert.SerializeObject(new { Person = Person, Conversation = conversation })) 
+                Content = JsonConvert.SerializeObject(new { Person = Person, Conversation = conversation }) 
             };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             try
             {
                 DefaultJSON response = await GetResponse(jsonString);
-                messages = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<List<Message>>(response.Content));
+                messages = JsonConvert.DeserializeObject<List<Message>>(response.Content);
             }catch(Exception ex)
             {
                 ErrorAlert(ex.Message);
@@ -135,14 +154,15 @@ namespace MessengerWPF
         {
             var conversations = new List<Conversation>();
 
-            DefaultJSON jSON = new DefaultJSON { 
-                Code = (int)Codes.GetConversations, 
-                Content = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(Person))
+            DefaultJSON jSON = new DefaultJSON
+            {
+                Code = (int)Codes.GetConversations,
+                Content = JsonConvert.SerializeObject(Person)
             };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             DefaultJSON response = await GetResponse(jsonString);
-            conversations = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<List<Conversation>>(response.Content));
+            conversations = JsonConvert.DeserializeObject<List<Conversation>>(response.Content);
 
             return conversations;
         }
@@ -162,7 +182,7 @@ namespace MessengerWPF
                 byte[] data = result.Buffer;
 
                 string response = Encoding.Unicode.GetString(data);
-                jsonResponse = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject(response));
+                jsonResponse = JsonConvert.DeserializeObject(response);
             }
             catch (Exception ex)
             {
@@ -183,13 +203,13 @@ namespace MessengerWPF
         {
             DefaultJSON jSON = new DefaultJSON { 
                 Code = (int) Codes.Authorization, 
-                Content = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(Person)) };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+                Content = JsonConvert.SerializeObject(Person) };
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             DefaultJSON response = await GetResponse(jsonString);
             if(response.Code == (int)Codes.True)
             {
-                dynamic jsonResponse = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject(response.Content));
+                dynamic jsonResponse = JsonConvert.DeserializeObject(response.Content);
                 Person = new Person {
                     ID = jsonResponse.ID,
                     Login = jsonResponse.Login,
@@ -211,9 +231,9 @@ namespace MessengerWPF
         {
             DefaultJSON jSON = new DefaultJSON { 
                 Code = (int)Codes.LogOut, 
-                Content = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(Person))
+                Content = JsonConvert.SerializeObject(Person)
             };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             DefaultJSON response = await GetResponse(jsonString);
             
@@ -228,9 +248,9 @@ namespace MessengerWPF
         {
             DefaultJSON jSON = new DefaultJSON { 
                 Code = (int) Codes.Registraion, 
-                Content = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(Person))
+                Content = JsonConvert.SerializeObject(Person)
             };
-            string jsonString = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(jSON));
+            string jsonString = JsonConvert.SerializeObject(jSON);
 
             DefaultJSON response = await GetResponse(jsonString);
             return response.Code == (int)Codes.True;
@@ -250,60 +270,6 @@ namespace MessengerWPF
             catch (Exception ex)
             {
                 ErrorAlert(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Стартует прослушивание сообщений в отдельном потоке
-        /// </summary>
-        public void StartReceiveMessages()
-        {
-            Thread receiveThread = new Thread(new ThreadStart(ReceiveMessages));
-            receiveThread.Start();
-        }
-
-        /// <summary>
-        /// Прослушивание сообщений с сервера в бесконечном цикле и отправление их на обработку
-        /// </summary>
-        private async void ReceiveMessages()
-        {
-            try
-            {
-                while (true)
-                {
-                    UdpReceiveResult result = await Client.ReceiveAsync();
-                    byte[] data = result.Buffer; // получаем данные
-                    string response = Encoding.Unicode.GetString(data);
-                    ProcessMessage(response);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorAlert(ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Обработчик входящих сообщений
-        /// </summary>
-        private async void ProcessMessage(string response)
-        {
-            DefaultJSON json;
-            try
-            {
-                json = await Task.Factory.StartNew(() =>  JsonConvert.DeserializeObject<DefaultJSON>(response));
-            }catch
-            {
-                ErrorAlert("Не удалось распознать сообщение сервера");
-                return;
-            }
-            switch (json.Code)
-            {
-                case (int)Codes.NewStatus:
-                    break;
-                default:
-                    ErrorAlert("Не удалось распознать код сообщения сервера");
-                    break;
             }
         }
 

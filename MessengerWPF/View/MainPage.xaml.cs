@@ -2,20 +2,11 @@
 using MessengerWPF.Util;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MessengerWPF.View
 {
@@ -24,6 +15,10 @@ namespace MessengerWPF.View
     /// </summary>
     public partial class MainPage : Page, INotifyPropertyChanged
     {
+        public static ChatPage ChatPage;
+        public static ObservableCollection<Person> UsersList { get; set; }
+        public static ObservableCollection<Conversation> Conversations { get; set; }
+
         double res = System.Windows.SystemParameters.PrimaryScreenWidth;
         private MessengerClient Client = MessengerClient.GetInstant();
         public string Nickname
@@ -64,7 +59,8 @@ namespace MessengerWPF.View
 
         private async void ChatsListView_Initialized(object sender, EventArgs e)
         {
-            ChatsListView.ItemsSource = await Client.GetConversations();
+            Conversations = new ObservableCollection<Conversation>();
+            (await Client.GetConversations()).ForEach(o => Conversations.Add(o));
         }
         
         private void ChatsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -72,21 +68,41 @@ namespace MessengerWPF.View
             Conversation selectedConversation = ((ListView)sender).SelectedItem as Conversation;
             if (selectedConversation != null)
             {
-                ChatPage chatPage = new ChatPage(NavigationFrame, selectedConversation);
+                ChatPage chatPage  = new ChatPage(NavigationFrame, selectedConversation);
                 NavigationFrame.Navigate(chatPage);
             }
             ((ListView)sender).UnselectAll();
         }
 
-        private async void OnlineUsersListView_Initialized(object sender, EventArgs e)
+        private async void UsersListView_Initialized(object sender, EventArgs e)
         {
-            OnlineUsersListView.ItemsSource = await Client.GetPeople();
+            UsersList = new ObservableCollection<Person>();
+            (await Client.GetPeople()).ForEach(o => UsersList.Add(o));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        }
+
+        private void UsersListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Person selectedPerson = ((ListView)sender).SelectedItem as Person;
+            if(selectedPerson != null)
+            {
+                NewConversationWindow newConversationWindow = new NewConversationWindow();
+                if(newConversationWindow.ShowDialog() == true)
+                {
+                    Conversation newConversation = new Conversation { ID = Guid.NewGuid(), Title = newConversationWindow.TitleTB.Text };
+                    List<Member> members = new List<Member> {
+                        new Member { ConversationID = newConversation.ID, PersonID = selectedPerson.ID },
+                        new Member { ConversationID = newConversation.ID, PersonID = Client.Person.ID },
+                    };
+                    Client.NewConversation(newConversation, members);
+                }
+            }
+            UsersListView.UnselectAll();
         }
     }
 }
