@@ -64,6 +64,6 @@ namespace ContextLibrary
         /// <summary>
         /// Клиент установил новый статус
         /// </summary>
-        SetStatus = 14,
+        NewStatus = 14,
     }
 }
