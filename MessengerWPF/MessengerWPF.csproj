@@ -252,6 +252,7 @@
     <Resource Include="src\img\Avatar.png" />
     <Resource Include="src\img\hanime_logo.png" />
     <Resource Include="src\img\BackButton.png" />
+    <Resource Include="src\img\DialogIcon.png" />
     <Content Include="src\img\logo.svg" />
     <Resource Include="src\img\triangle_pattern.png" />
   </ItemGroup>

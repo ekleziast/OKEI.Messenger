@@ -18,6 +18,7 @@ namespace MessengerWPF.View
         public static ChatPage ChatPage;
         public static ObservableCollection<Person> UsersList { get; set; }
         public static ObservableCollection<Conversation> Conversations { get; set; }
+        public static ObservableCollection<Conversation> FilteredConversations { get; set; }
 
         double res = System.Windows.SystemParameters.PrimaryScreenWidth;
         private MessengerClient Client = MessengerClient.GetInstant();
@@ -29,7 +30,6 @@ namespace MessengerWPF.View
                 OnPropertyChanged("Nickname");
             }
         }
-        private List<Conversation> _conversations { get; set; }
         Frame NavigationFrame;
 
         public MainPage(Frame navigationFrame)
@@ -44,7 +44,20 @@ namespace MessengerWPF.View
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // search method
+            FilterConversations(SearchTextBox.Text);
+        }
+        public void FilterConversations(string filter)
+        {
+            FilteredConversations.Clear();
+            foreach(var c in Conversations)
+            {
+                if (c.Title.Contains(filter))
+                {
+                    FilteredConversations.Add(c);
+                }
+            }
+            ChatsListView.ItemsSource = null;
+            ChatsListView.ItemsSource = FilteredConversations;
         }
 
         private void OnlineStatusCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -60,7 +73,12 @@ namespace MessengerWPF.View
         private async void ChatsListView_Initialized(object sender, EventArgs e)
         {
             Conversations = new ObservableCollection<Conversation>();
-            (await Client.GetConversations()).ForEach(o => Conversations.Add(o));
+            FilteredConversations = new ObservableCollection<Conversation>();
+            (await Client.GetConversations()).ForEach(o =>
+            {
+                Conversations.Add(o);
+                FilteredConversations.Add(o);
+            });
         }
         
         private void ChatsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)

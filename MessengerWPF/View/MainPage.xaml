@@ -33,14 +33,15 @@
                     <!--#region <ChatList> -->
                     <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
                     <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                        <ListView x:Name="ChatsListView" ItemsSource="{Binding ThisContext.Conversations}" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized" SelectionChanged="ChatsListView_SelectionChanged">
+                        <ListView x:Name="ChatsListView" ItemsSource="{Binding ThisContext.FilteredConversations}" Background="Transparent" BorderThickness="1" BorderBrush="LightGray" Padding="10" Initialized="ChatsListView_Initialized" SelectionChanged="ChatsListView_SelectionChanged">
                             <ListView.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel Height="70">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="20, 0">
                                             <Ellipse Width="60" Height="60">
                                                 <Ellipse.Fill>
-                                                    <ImageBrush ImageSource="{Binding ImageSource, Converter={StaticResource ByteToImageConverterXAML}}" Stretch="UniformToFill"/>
+                                                    <!-- <ImageBrush ImageSource="{Binding ImageSource, Converter={StaticResource ByteToImageConverterXAML}}" Stretch="UniformToFill"/> -->
+                                                    <ImageBrush ImageSource="/src/img/DialogIcon.png" Stretch="UniformToFill"/>
                                                 </Ellipse.Fill>
                                             </Ellipse>
                                             <TextBlock Text="{Binding Title}" Margin="20, 0" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>

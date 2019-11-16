@@ -19,7 +19,6 @@ namespace MessengerWPF
         private MessengerClient Client = MessengerClient.GetInstant();
         public static MainPage MainPage;
         double res = System.Windows.SystemParameters.PrimaryScreenWidth;
-        private List<Conversation> _conversations { get; set; }
         private AuthWindow parentWindow;
         
         public MainWindow(AuthWindow parentWindow)
@@ -102,19 +101,21 @@ namespace MessengerWPF
                     NewConversationProcess(json.Content);
                     break;
                 default:
-                    ErrorAlert("Не удалось распознать код сообщения сервера: " + json.Code);
+                    //ErrorAlert("Не удалось распознать код сообщения сервера: " + json.Code);
                     break;
             }
         }
 
         private void NewConversationProcess(string json)
         {
+            Console.WriteLine(json);
             Conversation conversation = JsonConvert.DeserializeObject<Conversation>(json);
             Dispatcher.BeginInvoke(new Action(() => {
                 MainPage.Conversations.Add(conversation);
-                MainPage.ChatsListView.ItemsSource = null;
-                MainPage.ChatsListView.ItemsSource = MainPage.Conversations;
-                MainPage.ChatsListView.SelectedItem = conversation;
+                MainPage.FilterConversations("");
+                //MainPage.ChatsListView.ItemsSource = null;
+                //MainPage.ChatsListView.ItemsSource = MainPage.Conversations;
+                //MainPage.ChatsListView.SelectedItem = conversation;
             }));
         }
 
