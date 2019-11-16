@@ -123,14 +123,52 @@ namespace MessengerServer
                 case (int)Codes.NewStatus:
                     SetStatusProcess(request.Content, ip);
                     break;
+                case (int)Codes.NewConversation:
+                    NewConversationProcess(request.Content, ip);
+                    break;
                 default:
                     SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Код ("+ request.Code +") не найден." }), ip);
                     break;
             }
         }
+
+        /// <summary>
+        /// Обработчик нового диалога
+        /// Return: Conversation
+        /// </summary>
+        /// <param name="json">Content: Conversation, Members (list -> member)</param>
+        private static void NewConversationProcess(string json, IPEndPoint ip)
+        {
+            string errorMessage;
+            dynamic content = JsonConvert.DeserializeObject(json);
+            Conversation conversation = JsonConvert.DeserializeObject<Conversation>(JsonConvert.SerializeObject(content.Conversation));
+            List<Member> members = JsonConvert.DeserializeObject<List<Member>>(JsonConvert.SerializeObject(content.Members));
+            List<Person> receivers = new List<Person>();
+            members.ForEach(o => receivers.Add(new Person { ID = o.PersonID }));
+
+            NewConversation(conversation, members);
+            BroadcastMessage(
+                new DefaultJSON
+                {
+                    Code = (int)Codes.NewConversation,
+                    Content = JsonConvert.SerializeObject(conversation)
+                }, receivers, out errorMessage
+                );
+        }
         
+        private static void NewConversation(Conversation conversation, List<Member> members)
+        {
+            using(Context db = new Context())
+            {
+                db.Conversations.Add(conversation);
+                db.Members.AddRange(members);
+                db.SaveChanges();
+            }
+        }
+
         /// <summary>
         /// Обработчик нового статуса
+        /// Return: Code: NewStatus, Content: Person
         /// </summary>
         /// <param name="json">Content: Person, Status</param>
         private static void SetStatusProcess(string json, IPEndPoint ip)
@@ -144,8 +182,6 @@ namespace MessengerServer
                 dynamic content = JsonConvert.DeserializeObject(json);
                 person = JsonConvert.DeserializeObject<Person>(JsonConvert.SerializeObject(content.Person));
                 status = JsonConvert.DeserializeObject<Status>(JsonConvert.SerializeObject(content.Status));
-                Console.WriteLine(person.ID);
-                Console.WriteLine(status.Name);
             }
             catch(Exception ex)
             {
@@ -161,6 +197,7 @@ namespace MessengerServer
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = ex.Message }), ip);
                 return;
             }
+            person.Status = status;
             BroadcastMessage(
                 new DefaultJSON { 
                     Code = (int)Codes.NewStatus, 
@@ -382,6 +419,7 @@ namespace MessengerServer
                 string errorMessage;
                 SetStatus(person, new Status { Name = "Не в сети" }, ip);
                 Clients.Remove(person);
+                person.Status = new Status { Name = "Не в сети" };
                 BroadcastMessage(
                     new DefaultJSON
                     {
@@ -500,6 +538,34 @@ namespace MessengerServer
         }
 
         /// <summary>
+        /// Отправляет сообщение всем получателям
+        /// </summary>
+        private static bool BroadcastMessage(DefaultJSON response, List<Person> receivers, out string errorMessage)
+        {
+            errorMessage = "";
+            try
+            {
+                receivers.ForEach(receiver =>
+                {
+                    Clients.ToList().ForEach(client =>
+                    {
+                        if (receiver.ID == client.Key.ID)
+                        {
+                            SendMessageToClient(JsonConvert.SerializeObject(response), client.Value);
+                        }
+                    });
+                });
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Обработчик JSON регистрации
         /// </summary>
         /// <param name="json">Content: Person</param>
@@ -578,6 +644,7 @@ namespace MessengerServer
                 Clients.Add(person, ip);
 
                 SetStatus(person, new Status { Name = "В сети" }, ip);
+                person.Status = new Status { Name = "В сети" };
                 BroadcastMessage(
                     new DefaultJSON
                     {
@@ -712,6 +779,7 @@ namespace MessengerServer
             try
             {
                 sender.Send(data, data.Length, ip);
+                Message_Console($"To {ip} : {message}");
             }
             catch (Exception ex)
             {
