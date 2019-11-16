@@ -120,7 +120,7 @@ namespace MessengerServer
                 case (int)Codes.GetUsers:
                     GetUsersProcess(ip);
                     break;
-                case (int)Codes.SetStatus:
+                case (int)Codes.NewStatus:
                     SetStatusProcess(request.Content, ip);
                     break;
                 default:
@@ -163,7 +163,7 @@ namespace MessengerServer
             }
             BroadcastMessage(
                 new DefaultJSON { 
-                    Code = (int)Codes.SetStatus, 
+                    Code = (int)Codes.NewStatus, 
                     Content = JsonConvert.SerializeObject(person) 
                 }, 
                     person, Clients.Keys.ToList(), out errorMessage);
@@ -380,12 +380,12 @@ namespace MessengerServer
             if (person != null)
             {
                 string errorMessage;
-                Clients.Remove(person);
                 SetStatus(person, new Status { Name = "Не в сети" }, ip);
+                Clients.Remove(person);
                 BroadcastMessage(
                     new DefaultJSON
                     {
-                        Code = (int)Codes.SetStatus,
+                        Code = (int)Codes.NewStatus,
                         Content = JsonConvert.SerializeObject(person)
                     },
                         person, Clients.Keys.ToList(), out errorMessage);
@@ -581,7 +581,7 @@ namespace MessengerServer
                 BroadcastMessage(
                     new DefaultJSON
                     {
-                        Code = (int)Codes.SetStatus,
+                        Code = (int)Codes.NewStatus,
                         Content = JsonConvert.SerializeObject(person)
                     },
                         person, Clients.Keys.ToList(), out errorMessage);
