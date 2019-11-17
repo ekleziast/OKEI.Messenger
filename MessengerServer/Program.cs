@@ -229,7 +229,13 @@ namespace MessengerServer
             try
             {
                 List<Person> people = GetPeople();
-                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(people) }), ip);
+                foreach(var p in people)
+                {
+                    p.Login = null;
+                    p.Password = null;
+                    p.Photo = null;
+                }
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.GetUsers, Content = JsonConvert.SerializeObject(people) }), ip);
             }
             catch(Exception ex)
             {
@@ -252,6 +258,7 @@ namespace MessengerServer
 
         /// <summary>
         /// Обработчик получения списка сообщений
+        /// Return: Messages
         /// </summary>
         /// <param name="json">Content: Person, Conversation</param>
         private static void GetMessagesProcess(string json, IPEndPoint ip)
@@ -299,7 +306,7 @@ namespace MessengerServer
             SendMessageToClient(JsonConvert.SerializeObject(
                 new DefaultJSON
                 {
-                    Code = (int)Codes.True,
+                    Code = (int)Codes.GetMessages,
                     Content = JsonConvert.SerializeObject(messages)
                 }), ip);
         }
@@ -314,7 +321,6 @@ namespace MessengerServer
             using (Context db = new Context())
             {
                 messages = db.Messages.Include("Person").Where(o => o.ConversationID == conversation.ID).ToList();
-                messages.ForEach(o => Console.WriteLine(o.ConversationID + " " + o.PersonID + ": " + " " + o.Text));
             }
 
             return messages;
@@ -364,7 +370,7 @@ namespace MessengerServer
             SendMessageToClient(JsonConvert.SerializeObject(
                 new DefaultJSON
                 {
-                    Code = (int)Codes.True,
+                    Code = (int)Codes.GetConversations,
                     Content = JsonConvert.SerializeObject(conversations)
                 }), ip);
             
@@ -445,6 +451,7 @@ namespace MessengerServer
 
         /// <summary>
         /// Обработчик нового сообщения в чате
+        /// Return: Message
         /// </summary>
         /// <param name="json">Content: Person, Message</param>
         private static void NewMessageProcess(string json, IPEndPoint ip)
@@ -456,7 +463,7 @@ namespace MessengerServer
             try
             {
                 dynamic content = JsonConvert.DeserializeObject(json);
-                person = JsonConvert.DeserializeObject<Message>(JsonConvert.SerializeObject(content.Person));
+                person = JsonConvert.DeserializeObject<Person>(JsonConvert.SerializeObject(content.Person));
                 message = JsonConvert.DeserializeObject<Message>(JsonConvert.SerializeObject(content.Message));
             } catch
             {
@@ -490,7 +497,7 @@ namespace MessengerServer
                     db.Messages.Add(message);
                     db.SaveChanges();
 
-                    db.Members.Include("Person").Where(o => o.PersonID != person.ID).ToList().ForEach(o => _receivers.Add(o.Person));
+                    db.Members.Include("Person").Where(o => o.ConversationID == message.ConversationID).ToList().ForEach(o => _receivers.Add(o.Person));
                 }
             }catch(Exception ex)
             {
@@ -500,9 +507,9 @@ namespace MessengerServer
 
             bool result = BroadcastMessage(
                 new DefaultJSON {
-                    Code = 6,
+                    Code = (int)Codes.NewMessage,
                     Content = JsonConvert.SerializeObject(message)
-                }, person, _receivers, out errorMessage);
+                }, _receivers, out errorMessage);
 
             return result;
         }
@@ -779,7 +786,7 @@ namespace MessengerServer
             try
             {
                 sender.Send(data, data.Length, ip);
-                Message_Console($"To {ip} : {message}");
+                Message_Console($"To {ip} : {message}", ConsoleColor.DarkYellow);
             }
             catch (Exception ex)
             {
@@ -810,6 +817,12 @@ namespace MessengerServer
         private static void Message_Console(string msg)
         {
             Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(msg);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        private static void Message_Console(string msg, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
             Console.WriteLine(msg);
             Console.ForegroundColor = ConsoleColor.White;
         }
