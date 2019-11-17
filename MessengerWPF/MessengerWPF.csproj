@@ -243,15 +243,11 @@
     <Folder Include="ViewModel\" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="src\img\background.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="src\img\sendbutton.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="src\img\favicon.ico" />
     <Resource Include="src\img\Avatar.png" />
-    <Resource Include="src\img\hanime_logo.png" />
     <Resource Include="src\img\BackButton.png" />
     <Resource Include="src\img\DialogIcon.png" />
     <Resource Include="src\img\1.png" />
