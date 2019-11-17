@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MessengerWPF.View"
         mc:Ignorable="d"
-        Title="ОКЭИ Чат" Height="800" Width="1200"
+        Title="VNEBE" Height="800" Width="1200"
         MinHeight="400" Closing="Window_Closing">
     <Window.Resources>
         <Style TargetType="{x:Type TextBlock}">
@@ -17,7 +17,7 @@
         <TabControl BorderThickness="0, 1, 0, 0" BorderBrush="Gray" SelectedIndex="1">
             <TabItem Template="{StaticResource NavigationTabItem}" IsEnabled="False">
                 <TabItem.Header>
-                    <Image Source="/src/img/hanime_logo.png"/>
+                    <Image Source="/src/img/1.png"/>
                 </TabItem.Header>
             </TabItem>
             <TabItem Template="{StaticResource NavigationTabItem}">
