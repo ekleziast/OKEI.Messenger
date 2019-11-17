@@ -62,13 +62,13 @@
             </DockPanel>
         </Grid>
 
-        <Grid Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right" Width="400">
+        <Grid Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" Width="400">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Button x:Name="RegisterButton" Content="Регистрация" Template="{StaticResource PrimaryButton}" Grid.Column="0" Width="150" Click="RegisterButton_Click"/>
-            <Button x:Name="LoginButton" IsDefault="True" Content="Войти" Template="{StaticResource StandartButton}" Grid.Column="1" Width="150" Margin="10, 0, 30, 0" Click="LoginButton_Click"/>
+            <Button x:Name="LoginButton" IsDefault="True" Content="Войти" Template="{StaticResource StandartButton}" Grid.Column="1" Width="150" Click="LoginButton_Click"/>
         </Grid>
     </Grid>
 </Window>

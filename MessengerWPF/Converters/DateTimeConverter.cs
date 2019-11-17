@@ -13,7 +13,7 @@ namespace MessengerWPF
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             DateTime dateTime = (DateTime)value;
-            return $"{dateTime.Day}/{dateTime.Month}/{dateTime.Year} {dateTime.Hour}:{dateTime.Minute}";
+            return dateTime.ToShortDateString() + " " + dateTime.ToShortTimeString();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

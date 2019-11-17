@@ -69,7 +69,7 @@
                                         </TextBlock.Text>
                                     </TextBlock>
                                     <TextBlock Grid.Row="1" x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap"/>
-                                    <TextBlock Grid.Row="2" Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" Margin="0, 0, 20, 0" FontSize="12" FontWeight="Light"/>
+                                    <TextBlock Grid.Row="2" Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" FontSize="12" FontWeight="Light"/>
                                 </Grid>
                             </Grid>
                         </DataTemplate>
