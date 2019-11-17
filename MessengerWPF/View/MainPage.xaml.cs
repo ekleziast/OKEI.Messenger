@@ -36,10 +36,9 @@ namespace MessengerWPF.View
         {
             InitializeComponent();
 
-            DataContext = new { ThisContext = this };
-
             AvatarGradientBrush.GradientStops = new GradientStopCollection(DesignUtil.GenerateRandomGradient());
             NavigationFrame = navigationFrame;
+            DataContext = new { ThisContext = this };
         }
 
         private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -70,15 +69,11 @@ namespace MessengerWPF.View
             }
         }
 
-        private async void ChatsListView_Initialized(object sender, EventArgs e)
+        private void ChatsListView_Initialized(object sender, EventArgs e)
         {
             Conversations = new ObservableCollection<Conversation>();
             FilteredConversations = new ObservableCollection<Conversation>();
-            (await Client.GetConversations()).ForEach(o =>
-            {
-                Conversations.Add(o);
-                FilteredConversations.Add(o);
-            });
+            Client.GetConversations();
         }
         
         private void ChatsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -86,16 +81,16 @@ namespace MessengerWPF.View
             Conversation selectedConversation = ((ListView)sender).SelectedItem as Conversation;
             if (selectedConversation != null)
             {
-                ChatPage chatPage  = new ChatPage(NavigationFrame, selectedConversation);
-                NavigationFrame.Navigate(chatPage);
+                ChatPage = new ChatPage(NavigationFrame, selectedConversation);
+                NavigationFrame.Navigate(ChatPage);
             }
             ((ListView)sender).UnselectAll();
         }
 
-        private async void UsersListView_Initialized(object sender, EventArgs e)
+        private void UsersListView_Initialized(object sender, EventArgs e)
         {
             UsersList = new ObservableCollection<Person>();
-            (await Client.GetPeople()).ForEach(o => UsersList.Add(o));
+            Client.GetPeople();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -35,46 +35,55 @@
                     <TextBlock x:Name="TitleConversation" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="{StaticResource RobotoMedium}" FontSize="20"/>
                 </DockPanel>
                 <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
-                <ScrollViewer Panel.ZIndex="1" Grid.Row="1" Background="Transparent" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden">
-                    <ListView x:Name="ChatMessagesListView" Background="Transparent" BorderThickness="0" Initialized="ChatMessagesListView_Initialized">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <DockPanel Margin="0, 10">
-                                    <Ellipse Width="50" Height="50" Margin="0, 15, 0, 0">
-                                        <Ellipse.Stroke>
-                                            <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
-                                        </Ellipse.Stroke>
-                                        <Ellipse.Fill>
-                                            <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
-                                        </Ellipse.Fill>
-                                    </Ellipse>
-                                    <DockPanel Margin="15, 0, 10, 0">
-                                        <StackPanel>
-                                            <TextBlock FontSize="18" FontFamily="{StaticResource RobotoMedium}" Foreground="Blue">
-                                                <TextBlock.Text>
-                                                    <MultiBinding StringFormat="{}{0} {1}">
-                                                        <Binding Path="Person.Name"/>
-                                                        <Binding Path="Person.SurName"/>
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                            <TextBlock x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap" Width="500"/>
-                                            <TextBlock Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" FontSize="12" FontWeight="Light"/>
-                                        </StackPanel>
-                                    </DockPanel>
-                                </DockPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
+                <DockPanel Grid.Row="1">
+                <ListView x:Name="ChatMessagesListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" Panel.ZIndex="1" Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0" Initialized="ChatMessagesListView_Initialized">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="530"/>
+                                </Grid.ColumnDefinitions>
+                                <!--#region <Avatar>-->
+                                <Ellipse Grid.Column="0" Width="50" Height="50" Margin="0, 15, 0, 0">
+                                    <Ellipse.Stroke>
+                                        <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                                    </Ellipse.Stroke>
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <!--#endregion-->
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" FontSize="18" FontFamily="{StaticResource RobotoMedium}" Foreground="Blue">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} {1}">
+                                                <Binding Path="Person.Name"/>
+                                                <Binding Path="Person.SurName"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Grid.Row="1" x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap"/>
+                                    <TextBlock Grid.Row="2" Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" Margin="0, 0, 20, 0" FontSize="12" FontWeight="Light"/>
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
                     </ListView>
-                </ScrollViewer>
+                </DockPanel>
                 <DockPanel Grid.Row="2" Background="White">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="70"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="MessageTextBox" Grid.Column="0" Margin="5, 0, 0, 0" Tag="Сообщение" Template="{StaticResource StandartTextBox}"/>
-                        <Button x:Name="SendButton" Template="{StaticResource MessageButton}" Background="White" Grid.Column="1" Margin="5">
+                        <TextBox x:Name="MessageTextBox" Grid.Column="0" KeyDown="MessageTextBox_KeyDown" Margin="5, 0, 0, 0" Tag="Сообщение" Template="{StaticResource StandartTextBox}"/>
+                        <Button x:Name="SendButton" Template="{StaticResource MessageButton}" Background="White" Grid.Column="1" Margin="5" Click="SendButton_Click">
                             <Button.Content>
                                 <Image Source="/src/img/sendbutton.png" Focusable="False"/>
                             </Button.Content>

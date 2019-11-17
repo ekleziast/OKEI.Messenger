@@ -16,6 +16,7 @@ namespace MessengerWPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static Thread ReceiveThread;
         private MessengerClient Client = MessengerClient.GetInstant();
         public static MainPage MainPage;
         double res = System.Windows.SystemParameters.PrimaryScreenWidth;
@@ -27,11 +28,13 @@ namespace MessengerWPF
             InitializeComponent();
             this.parentWindow = parentWindow;
 
+            // TODO: Threads
+            StartReceiveMessages();
+
             MainFrame.NavigationUIVisibility = NavigationUIVisibility.Hidden;
             MainPage = new MainPage(MainFrame);
             MainFrame.Navigate(MainPage);
 
-            StartReceiveMessages();
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -51,8 +54,8 @@ namespace MessengerWPF
         /// </summary>
         public void StartReceiveMessages()
         {
-            Thread receiveThread = new Thread(new ThreadStart(ReceiveMessages));
-            receiveThread.Start();
+            ReceiveThread = new Thread(new ThreadStart(ReceiveMessages));
+            ReceiveThread.Start();
         }
 
 
@@ -100,22 +103,91 @@ namespace MessengerWPF
                 case (int)Codes.NewConversation:
                     NewConversationProcess(json.Content);
                     break;
+                case (int)Codes.NewMessage:
+                    NewMessageProcess(json.Content);
+                    break;
+                case (int)Codes.GetConversations:
+                    GetConversationsProcess(json.Content);
+                    break;
+                case (int)Codes.GetMessages:
+                    GetMessagesProcess(json.Content);
+                    break;
+                case (int)Codes.GetUsers:
+                    GetUsersProcess(json.Content);
+                    break;
                 default:
                     //ErrorAlert("Не удалось распознать код сообщения сервера: " + json.Code);
                     break;
             }
         }
+        private void GetMessagesProcess(string json)
+        {
+            List<Message> messages = JsonConvert.DeserializeObject<List<Message>>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                messages.ForEach(o => {
+                    MainPage.ChatPage.Messages.Add(o);
+                    MainPage.ChatPage.ChatMessagesListView.ItemsSource = null;
+                    MainPage.ChatPage.ChatMessagesListView.ItemsSource = MainPage.ChatPage.Messages;
+                    MainPage.ChatPage.ScrollToEnd();
+                });
+            }));
+        }
+        private void GetUsersProcess(string json)
+        {
+            List<Person> people = JsonConvert.DeserializeObject<List<Person>>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (MainPage != null)
+                {
+                    people.ForEach(o =>
+                    {
+                        if (o.ID != Client.Person.ID)
+                        {
+                            MainPage.UsersList.Add(o);
+                        }
+                        MainPage.UsersListView.ItemsSource = null;
+                        MainPage.UsersListView.ItemsSource = MainPage.UsersList;
+                    });
+                }
+            }));
+        }
+
+        private void GetConversationsProcess(string json)
+        {
+            List<Conversation> conversations = JsonConvert.DeserializeObject<List<Conversation>>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                conversations.ForEach( o => {
+                    MainPage.Conversations.Add(o);
+                    MainPage.FilteredConversations.Add(o);
+                    MainPage.FilterConversations("");
+                });
+            }));
+        }
+        private void NewMessageProcess(string json)
+        {
+            Message message = JsonConvert.DeserializeObject<Message>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (MainPage != null)
+                {
+                    if (MainPage.ChatPage.Conversation.ID == message.ConversationID)
+                    {
+                        MainPage.ChatPage.Messages.Add(message);
+                        MainPage.ChatPage.ChatMessagesListView.ItemsSource = null;
+                        MainPage.ChatPage.ChatMessagesListView.ItemsSource = MainPage.ChatPage.Messages;
+                        MainPage.ChatPage.ScrollToEnd();
+                    }
+                }
+            }));
+        }
 
         private void NewConversationProcess(string json)
         {
-            Console.WriteLine(json);
             Conversation conversation = JsonConvert.DeserializeObject<Conversation>(json);
             Dispatcher.BeginInvoke(new Action(() => {
-                MainPage.Conversations.Add(conversation);
-                MainPage.FilterConversations("");
-                //MainPage.ChatsListView.ItemsSource = null;
-                //MainPage.ChatsListView.ItemsSource = MainPage.Conversations;
-                //MainPage.ChatsListView.SelectedItem = conversation;
+                if (MainPage != null)
+                {
+                    MainPage.Conversations.Add(conversation);
+                    MainPage.FilterConversations("");
+                }
             }));
         }
 
@@ -131,9 +203,13 @@ namespace MessengerWPF
                         break;
                     }
                 }
+                if (MainPage == null)
+                {
+                    MainPage = new MainPage(MainFrame);
+                }
                 MainPage.UsersListView.ItemsSource = null;
                 MainPage.UsersListView.ItemsSource = MainPage.UsersList;
-                }));
+            }));
         }
 
         /// <summary>

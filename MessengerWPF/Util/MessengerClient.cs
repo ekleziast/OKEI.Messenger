@@ -54,7 +54,33 @@ namespace MessengerWPF
             _instant = null;
         }
 
-        public async void NewConversation(Conversation conversation, List<Member> members)
+        /// <summary>
+        /// Создает новое сообщение
+        /// </summary>
+        /// <param name="message"></param>
+        public void NewMessage(Message message)
+        {
+            DefaultJSON json = new DefaultJSON { 
+                Code = (int)Codes.NewMessage, 
+                Content = JsonConvert.SerializeObject(new { Person = Person, Message = message }) 
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+            try
+            {
+                SendMessageAsync(jsonString);
+            }
+            catch (Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Создает новый диалог
+        /// </summary>
+        /// <param name="conversation">Диалог</param>
+        /// <param name="members">Список участников</param>
+        public void NewConversation(Conversation conversation, List<Member> members)
         {
             DefaultJSON json = new DefaultJSON
             {
@@ -73,7 +99,7 @@ namespace MessengerWPF
             }
         }
 
-        public async void SetStatus(Status status)
+        public void SetStatus(Status status)
         {
             if (status.Name == "Невидимка")
             {
@@ -98,7 +124,7 @@ namespace MessengerWPF
         /// <summary>
         /// Получение списка пользователей
         /// </summary>
-        public async Task<List<Person>> GetPeople()
+        public void GetPeople()
         {
             List<Person> people = new List<Person>();
 
@@ -107,16 +133,11 @@ namespace MessengerWPF
 
             try
             {
-                DefaultJSON response = await GetResponse(jsonString);
-                people = JsonConvert.DeserializeObject<List<Person>>(response.Content);
+                SendMessageAsync(jsonString);
             }catch(Exception ex)
             {
                 ErrorAlert(ex.Message);
             }
-
-            people.Remove(people.Where(o => o.ID == Person.ID).FirstOrDefault());
-
-            return people;
         }
 
         /// <summary>
@@ -124,7 +145,7 @@ namespace MessengerWPF
         /// </summary>
         /// <param name="conversation">Диалог</param>
         /// <returns>Список сообщений</returns>
-        public async Task<List<Message>> GetMessages(Conversation conversation)
+        public void GetMessages(Conversation conversation)
         {
             List<Message> messages = new List<Message>();
 
@@ -134,23 +155,14 @@ namespace MessengerWPF
             };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            try
-            {
-                DefaultJSON response = await GetResponse(jsonString);
-                messages = JsonConvert.DeserializeObject<List<Message>>(response.Content);
-            }catch(Exception ex)
-            {
-                ErrorAlert(ex.Message);
-            }
-
-            return messages;
+            SendMessageAsync(jsonString);
         }
 
         /// <summary>
         /// Получение списка диалогов
         /// </summary>
         /// <returns>Список диалогов</returns>
-        public async Task<List<Conversation>> GetConversations()
+        public void GetConversations()
         {
             var conversations = new List<Conversation>();
 
@@ -161,10 +173,7 @@ namespace MessengerWPF
             };
             string jsonString = JsonConvert.SerializeObject(jSON);
 
-            DefaultJSON response = await GetResponse(jsonString);
-            conversations = JsonConvert.DeserializeObject<List<Conversation>>(response.Content);
-
-            return conversations;
+            SendMessageAsync(jsonString);
         }
 
         /// <summary>
