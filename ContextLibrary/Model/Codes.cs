@@ -65,5 +65,9 @@ namespace ContextLibrary
         /// Клиент установил новый статус
         /// </summary>
         NewStatus = 14,
+        /// <summary>
+        /// Клиент запросил список участников беседы
+        /// </summary>
+        GetMembers = 15,
     }
 }
