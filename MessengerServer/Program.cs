@@ -20,19 +20,37 @@ namespace MessengerServer
         static void Main(string[] args)
         {
             Title_Console("ОКЭИ Сервер");
+
+            // ОЧИЩАЕТ ВСЕ ДАННЫЕ
+            
             /*
             using (Context db = new Context())
             {
-                Guid personId = db.Persons.Where(o => o.Login == "admin").FirstOrDefault().ID;
-                Message message = new Message {
-                    PersonID = personId,
-                    ConversationID = db.Conversations.Where(o => o.ID == db.Members.Where(k => k.PersonID == personId).FirstOrDefault().ConversationID).FirstOrDefault().ID,
-                    DateTime = DateTime.Now, Text = "Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!Hello, World!"
-                };
-                db.Messages.Add(message);
+                foreach(var p in db.Persons)
+                {
+                    db.Persons.Remove(p);
+                }
+                foreach (var p in db.Messages)
+                {
+                    db.Messages.Remove(p);
+                }
+                foreach (var p in db.Members)
+                {
+                    db.Members.Remove(p);
+                }
+                foreach (var p in db.Photos)
+                {
+                    db.Photos.Remove(p);
+                }
+                foreach (var p in db.Conversations)
+                {
+                    db.Conversations.Remove(p);
+                }
                 db.SaveChanges();
             }
             */
+
+
             Message_Console("Сервер запущен. Ожидание подключения...");
             try
             {
@@ -99,15 +117,12 @@ namespace MessengerServer
                 case (int) Codes.Registraion:
                     RegisterProcess(request.Content, ip);
                     break;
-                    
                 case (int) Codes.Authorization:
                     AuthProcess(request.Content, ip);
                     break;
-                    
                 case (int) Codes.NewMessage:
                     NewMessageProcess(request.Content, ip);
                     break;
-                    
                 case (int) Codes.LogOut:
                     LogOutProcess(request.Content, ip);
                     break;
@@ -126,10 +141,103 @@ namespace MessengerServer
                 case (int)Codes.NewConversation:
                     NewConversationProcess(request.Content, ip);
                     break;
+                case (int)Codes.NewMember:
+                    NewMemberProcess(request.Content, ip);
+                    break;
+                case (int)Codes.GetMembers:
+                    GetMembersProcess(request.Content, ip);
+                    break;
                 default:
                     SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.False, Content = "Код ("+ request.Code +") не найден." }), ip);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Обработчик запроса на список участников диалога
+        /// Return: List Members
+        /// </summary>
+        /// <param name="json">Content: Conversation</param>
+        private static void GetMembersProcess(string json, IPEndPoint ip)
+        {
+            Conversation conversation = JsonConvert.DeserializeObject<Conversation>(json);
+            List<Member> members = GetMembers(conversation);
+            SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.GetMembers, Content = JsonConvert.SerializeObject(members) }), ip);
+        }
+        private static List<Member> GetMembers(Conversation conversation)
+        {
+            List<Member> members = new List<Member>();
+            using(Context db = new Context())
+            {
+                members = db.Members.Include("Conversation").Include("Person").Where(o => o.ConversationID == conversation.ID).ToList();
+            }
+            foreach (var m in members)
+            {
+                m.Person.Login = null;
+                m.Person.Password = null;
+                m.Person.Photo = null;
+            }
+            return members;
+        }
+
+        /// <summary>
+        /// Обработчик нового участника диалога
+        /// Return: Member
+        /// </summary>
+        /// <param name="json">Content: Member</param>
+        private static void NewMemberProcess(string json, IPEndPoint ip)
+        {
+            Member member = JsonConvert.DeserializeObject<Member>(json);
+            Member newMember;
+            Conversation conversation;
+            List<Person> receivers = NewMember(member, out newMember, out conversation);
+            string errorMessage;
+
+            IPEndPoint newMemberIP = null;
+            foreach(var o in Clients)
+            {
+                if(o.Key.ID == newMember.Person.ID)
+                {
+                    newMemberIP = o.Value;
+                    break;
+                }
+            }
+            if (newMemberIP != null) {
+                SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.NewConversation, Content = JsonConvert.SerializeObject(conversation) }), newMemberIP);
+            }
+            BroadcastMessage(
+                new DefaultJSON
+                {
+                    Code = (int)Codes.NewMember,
+                    Content = JsonConvert.SerializeObject(newMember)
+                }, receivers, out errorMessage
+                );
+        }
+        private static List<Person> NewMember(Member member, out Member newMember, out Conversation conversation)
+        {
+            List<Person> receivers = new List<Person>();
+            newMember = member;
+            conversation = new Conversation();
+            using (Context db = new Context())
+            {
+                db.Members.Add(member);
+                db.SaveChanges();
+
+                newMember = db.Members.Include("Person").Include("Conversation").Where(o => o.ID == member.ID).FirstOrDefault();
+                newMember.Person.Login = null;
+                newMember.Person.Password = null;
+                newMember.Person.Photo = null;
+                conversation = db.Conversations.Where(o => o.ID == member.ConversationID).FirstOrDefault();
+
+                db.Members.Include("Conversation").Include("Person").Where(o => o.ConversationID == member.ConversationID).ToList().ForEach(o => receivers.Add(o.Person));
+            }
+            foreach(var o in receivers)
+            {
+                o.Password = null;
+                o.Login = null;
+                o.Photo = null;
+            }
+            return receivers;
         }
 
         /// <summary>
@@ -598,6 +706,12 @@ namespace MessengerServer
             if (result)
             {
                 SendMessageToClient(JsonConvert.SerializeObject(new DefaultJSON { Code = (int)Codes.True, Content = JsonConvert.SerializeObject(p) }), ip);
+
+                p.Password = null;
+                p.Login = null;
+                p.Photo = null;
+                p.Status = new Status { Name = "Не в сети" };
+                BroadcastMessage(new DefaultJSON { Code = (int)Codes.Registraion, Content = JsonConvert.SerializeObject(p) }, Clients.Keys.ToList(), out errorMessage);
             }
             else
             {
