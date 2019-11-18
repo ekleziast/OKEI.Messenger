@@ -54,6 +54,35 @@ namespace MessengerWPF
             _instant = null;
         }
 
+        public void GetMembers(Conversation conversation)
+        {
+            DefaultJSON json = new DefaultJSON { Code = (int)Codes.GetMembers, Content = JsonConvert.SerializeObject(conversation) };
+            string jsonString = JsonConvert.SerializeObject(json);
+            SendMessageAsync(jsonString);
+        }
+
+        /// <summary>
+        /// Добавляет нового участника в беседу
+        /// </summary>
+        /// <param name="member">Новый участник</param>
+        public void NewMember(Member member)
+        {
+            DefaultJSON json = new DefaultJSON
+            {
+                Code = (int)Codes.NewMember,
+                Content = JsonConvert.SerializeObject(member)
+            };
+            string jsonString = JsonConvert.SerializeObject(json);
+            try
+            {
+                SendMessageAsync(jsonString);
+            }
+            catch (Exception ex)
+            {
+                ErrorAlert(ex.Message);
+            }
+        }
+
         /// <summary>
         /// Создает новое сообщение
         /// </summary>
@@ -99,6 +128,10 @@ namespace MessengerWPF
             }
         }
 
+        /// <summary>
+        /// Сохраняет статус пользователя
+        /// </summary>
+        /// <param name="status">Новый статус</param>
         public void SetStatus(Status status)
         {
             if (status.Name == "Невидимка")

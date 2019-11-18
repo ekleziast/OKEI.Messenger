@@ -17,6 +17,7 @@
             <local:DateTimeConverter x:Key="DateTimeConverterXAML"/>
             <local:MultiValuesConverter x:Key="MultiValuesConverterXAML"/>
             <local:ByteToImageConverter x:Key="ByteToImageConverterXAML"/>
+            <local:ConversationMemberColorConverter x:Key="ConversationMemberColorConverterXAML"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

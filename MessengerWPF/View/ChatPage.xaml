@@ -7,16 +7,57 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="VNEBE">
-
+    
     <Grid>
         <Grid.Background>
             <ImageBrush ImageSource="/src/img/triangle_pattern.png" Opacity="0.2"/>
         </Grid.Background>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
+        <Button x:Name="AddMemberButton" Template="{StaticResource PrimaryButton}" Content="Добавить участника" Grid.Column="0" VerticalAlignment="Top" Width="160" HorizontalAlignment="Center" Margin="0, 5, 0, 0" Click="AddMemberButton_Click"/>
+        <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10, 46" Height="300"/>
+        <DockPanel Panel.ZIndex="1" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="300" Margin="10, 46" >
+            <ListView x:Name="MembersListView" ItemsSource="{Binding People}" Background="Transparent" BorderThickness="0" Initialized="MembersListView_Initialized">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="0, 0, 0, 1" BorderBrush="LightGray">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Grid.Column="0" Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Ellipse.Stroke>
+                                        <LinearGradientBrush Opacity="1"/>
+                                    </Ellipse.Stroke>
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" TextWrapping="Wrap" FontSize="16" FontWeight="Bold">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} {1}">
+                                                <Binding Path="Name"/>
+                                                <Binding Path="SurName"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Path=Status.Name}" Margin="0, 8, 0, 0" Grid.Row="1" FontSize="14" TextAlignment="Right" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </DockPanel>
         <DockPanel Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Center">
             <Button x:Name="BackButton" Template="{StaticResource ImageButton}" Height="60" BorderBrush="Transparent" Grid.Column="1" Margin="10" Click="BackButton_Click">
                 <Button.Content>
@@ -36,44 +77,51 @@
                 </DockPanel>
                 <DockPanel Panel.ZIndex="0" Background="White" Opacity="0.8" Grid.Row="1"/>
                 <DockPanel Grid.Row="1">
-                <ListView x:Name="ChatMessagesListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" Panel.ZIndex="1" Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0" Initialized="ChatMessagesListView_Initialized">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="70"/>
-                                    <ColumnDefinition Width="530"/>
-                                </Grid.ColumnDefinitions>
-                                <!--#region <Avatar>-->
-                                <Ellipse Grid.Column="0" Width="50" Height="50" Margin="0, 15, 0, 0">
-                                    <Ellipse.Stroke>
-                                        <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
-                                    </Ellipse.Stroke>
-                                    <Ellipse.Fill>
-                                        <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
-                                    </Ellipse.Fill>
-                                </Ellipse>
-                                <!--#endregion-->
-                                <Grid Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" FontSize="18" FontFamily="{StaticResource RobotoMedium}" Foreground="Blue">
-                                        <TextBlock.Text>
-                                            <MultiBinding StringFormat="{}{0} {1}">
-                                                <Binding Path="Person.Name"/>
-                                                <Binding Path="Person.SurName"/>
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                    <TextBlock Grid.Row="1" x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap"/>
-                                    <TextBlock Grid.Row="2" Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" HorizontalAlignment="Right" FontSize="12" FontWeight="Light"/>
+                    <ListView x:Name="ChatMessagesListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Hidden" Panel.ZIndex="1" Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0" Initialized="ChatMessagesListView_Initialized">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListViewItem}">
+                                <Setter Property="Focusable" Value="False"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0, 5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!--#region <Avatar>-->
+                                    <Ellipse Grid.Column="0" Width="50" Height="50" Margin="0, 15, 0, 0">
+                                        <Ellipse.Stroke>
+                                            <LinearGradientBrush x:Name="AvatarGradientBrush" Opacity="1"/>
+                                        </Ellipse.Stroke>
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/src/img/Avatar.png" Stretch="UniformToFill"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <!--#endregion-->
+                                    <DockPanel Grid.Column="1">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" FontSize="18" FontFamily="{StaticResource RobotoMedium}" Foreground="{Binding Path=Person.ID, Converter={StaticResource ConversationMemberColorConverterXAML}}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} {1}">
+                                                        <Binding Path="Person.Name"/>
+                                                        <Binding Path="Person.SurName"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Grid.Row="1" x:Name="MessageTextTB" Text="{Binding Text}" FontSize="16" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Row="2" Text="{Binding DateTime, Converter={StaticResource DateTimeConverterXAML}}" Foreground="Gray" FontSize="12" Margin="0, 5, 0, 0" FontWeight="Light"/>
+                                        </Grid>
+                                    </DockPanel>
                                 </Grid>
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
                     </ListView>
                 </DockPanel>
                 <DockPanel Grid.Row="2" Background="White">

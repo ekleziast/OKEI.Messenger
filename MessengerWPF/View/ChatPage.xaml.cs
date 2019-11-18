@@ -26,6 +26,7 @@ namespace MessengerWPF.View
         private MessengerClient Client = MessengerClient.GetInstant();
         public Conversation Conversation;
         public ObservableCollection<Message> Messages { get; set; }
+        public ObservableCollection<Person> People { get; set; }
         private Frame NavigationFrame;
 
         public ChatPage(Frame navigationFrame, Conversation conversation)
@@ -92,6 +93,21 @@ namespace MessengerWPF.View
                 };
                 Client.NewMessage(message);
                 MessageTextBox.Clear();
+            }
+        }
+
+        private void MembersListView_Initialized(object sender, EventArgs e)
+        {
+            People = new ObservableCollection<Person>();
+            Client.GetMembers(Conversation);
+        }
+
+        private void AddMemberButton_Click(object sender, RoutedEventArgs e)
+        {
+            NewMemberWindow newMemberWindow = new NewMemberWindow();
+            if(newMemberWindow.ShowDialog() == true)
+            {
+                Client.NewMember(new Member { PersonID = newMemberWindow.SelectedPerson.ID, ConversationID = Conversation.ID });
             }
         }
     }

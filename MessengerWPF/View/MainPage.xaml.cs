@@ -50,7 +50,7 @@ namespace MessengerWPF.View
             FilteredConversations.Clear();
             foreach(var c in Conversations)
             {
-                if (c.Title.Contains(filter))
+                if (c.Title.ToLower().Contains(filter.ToLower()))
                 {
                     FilteredConversations.Add(c);
                 }

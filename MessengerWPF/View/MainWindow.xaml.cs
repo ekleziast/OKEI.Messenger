@@ -46,9 +46,7 @@ namespace MessengerWPF
             }
             MessengerClient.DisposeInstant();
         }
-
-
-
+        
         /// <summary>
         /// Стартует прослушивание сообщений в отдельном потоке
         /// </summary>
@@ -83,7 +81,7 @@ namespace MessengerWPF
         /// <summary>
         /// Обработчик входящих сообщений
         /// </summary>
-        public async void ProcessMessage(string response)
+        public void ProcessMessage(string response)
         {
             DefaultJSON json;
             try
@@ -115,20 +113,76 @@ namespace MessengerWPF
                 case (int)Codes.GetUsers:
                     GetUsersProcess(json.Content);
                     break;
+                case (int)Codes.NewMember:
+                    NewMemberProcess(json.Content);
+                    break;
+                case (int)Codes.GetMembers:
+                    GetMembersProcess(json.Content);
+                    break;
+                case (int)Codes.Registraion:
+                    RegistrationProcess(json.Content);
+                    break;
                 default:
                     //ErrorAlert("Не удалось распознать код сообщения сервера: " + json.Code);
                     break;
             }
+        }
+        private void RegistrationProcess(string json)
+        {
+            Person person = JsonConvert.DeserializeObject<Person>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                MainPage.UsersList.Add(person);
+                MainPage.UsersListView.ItemsSource = null;
+                MainPage.UsersListView.ItemsSource = MainPage.UsersList;
+            }));
+        }
+        private void NewMemberProcess(string json)
+        {
+            Member member = JsonConvert.DeserializeObject<Member>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (MainPage.ChatPage != null)
+                {
+                    if(MainPage.ChatPage.Conversation.ID == member.ConversationID)
+                    {
+                        MainPage.ChatPage.People.Add(member.Person);
+                    }
+                }
+            }));
+        }
+        private void GetMembersProcess(string json)
+        {
+            List<Member> members = JsonConvert.DeserializeObject<List<Member>>(json);
+            Dispatcher.BeginInvoke(new Action(() => {
+                if (members.Count > 0)
+                {
+                    if (MainPage.ChatPage != null)
+                    {
+                        MainPage.ChatPage.People.Clear();
+                        foreach(var m in members)
+                        {
+                            if(m.ConversationID == MainPage.ChatPage.Conversation.ID)
+                            {
+                                MainPage.ChatPage.People.Add(m.Person);
+                            }
+                        }
+                        MainPage.ChatPage.MembersListView.ItemsSource = null;
+                        MainPage.ChatPage.MembersListView.ItemsSource = MainPage.ChatPage.People;
+                    }
+                }
+            }));
         }
         private void GetMessagesProcess(string json)
         {
             List<Message> messages = JsonConvert.DeserializeObject<List<Message>>(json);
             Dispatcher.BeginInvoke(new Action(() => {
                 messages.ForEach(o => {
-                    MainPage.ChatPage.Messages.Add(o);
-                    MainPage.ChatPage.ChatMessagesListView.ItemsSource = null;
-                    MainPage.ChatPage.ChatMessagesListView.ItemsSource = MainPage.ChatPage.Messages;
-                    MainPage.ChatPage.ScrollToEnd();
+                    if (MainPage.ChatPage != null)
+                    {
+                        MainPage.ChatPage.Messages.Add(o);
+                        MainPage.ChatPage.ChatMessagesListView.ItemsSource = null;
+                        MainPage.ChatPage.ChatMessagesListView.ItemsSource = MainPage.ChatPage.Messages;
+                        MainPage.ChatPage.ScrollToEnd();
+                    }
                 });
             }));
         }
@@ -156,9 +210,12 @@ namespace MessengerWPF
             List<Conversation> conversations = JsonConvert.DeserializeObject<List<Conversation>>(json);
             Dispatcher.BeginInvoke(new Action(() => {
                 conversations.ForEach( o => {
-                    MainPage.Conversations.Add(o);
-                    MainPage.FilteredConversations.Add(o);
-                    MainPage.FilterConversations("");
+                    if (MainPage.Conversations != null)
+                    {
+                        MainPage.Conversations.Add(o);
+                        MainPage.FilteredConversations.Add(o);
+                        MainPage.FilterConversations("");
+                    }
                 });
             }));
         }
@@ -166,7 +223,7 @@ namespace MessengerWPF
         {
             Message message = JsonConvert.DeserializeObject<Message>(json);
             Dispatcher.BeginInvoke(new Action(() => {
-                if (MainPage != null)
+                if (MainPage.ChatPage != null)
                 {
                     if (MainPage.ChatPage.Conversation.ID == message.ConversationID)
                     {
@@ -183,7 +240,7 @@ namespace MessengerWPF
         {
             Conversation conversation = JsonConvert.DeserializeObject<Conversation>(json);
             Dispatcher.BeginInvoke(new Action(() => {
-                if (MainPage != null)
+                if (MainPage.Conversations != null)
                 {
                     MainPage.Conversations.Add(conversation);
                     MainPage.FilterConversations("");
@@ -195,17 +252,27 @@ namespace MessengerWPF
         {
             Person person = JsonConvert.DeserializeObject<Person>(json);
             Dispatcher.BeginInvoke(new Action(() => {
-                foreach(var p in MainPage.UsersList)
-                {
-                    if(p.ID == person.ID)
-                    {
-                        p.Status.Name = person.Status.Name;
-                        break;
-                    }
-                }
                 if (MainPage == null)
                 {
                     MainPage = new MainPage(MainFrame);
+                }
+                if (MainPage.UsersList != null)
+                {
+                    foreach (var p in MainPage.UsersList)
+                    {
+                        if (p.ID == person.ID)
+                        {
+                            if (p.Status == null)
+                            {
+                                p.Status = new Status { Name = person.Status.Name };
+                            }
+                            else
+                            {
+                                p.Status.Name = person.Status.Name;
+                            }
+                            break;
+                        }
+                    }
                 }
                 MainPage.UsersListView.ItemsSource = null;
                 MainPage.UsersListView.ItemsSource = MainPage.UsersList;

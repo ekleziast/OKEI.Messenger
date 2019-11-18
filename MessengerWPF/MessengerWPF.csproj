@@ -137,12 +137,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\ByteToImageConverter.cs" />
+    <Compile Include="Converters\ConversationMemberColorConverter.cs" />
     <Compile Include="Util\DesignUtil.cs" />
     <Compile Include="View\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\NewConversationWindow.xaml.cs">
       <DependentUpon>NewConversationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\NewMemberWindow.xaml.cs">
+      <DependentUpon>NewMemberWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RegisterWindow.xaml.cs">
       <DependentUpon>RegisterWindow.xaml</DependentUpon>
@@ -201,6 +205,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="View\NewConversationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\NewMemberWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
